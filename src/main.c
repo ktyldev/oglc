@@ -3,10 +3,11 @@
 #include "gfx.h"
 
 float vertices[] = {
-     0.5f,  0.5f,  0.0f, // top right
-     0.5f, -0.5f,  0.0f, // bottom right
-    -0.5f, -0.5f,  0.0f, // bottom left
-    -0.5f,  0.5f,  0.0f  // top left
+    // position             color
+     0.5f,  0.5f,  0.0f,    1.0f, 1.0f, 1.0f,  // top right
+     0.5f, -0.5f,  0.0f,    1.0f, 0.0f, 0.0f,  // bottom right
+    -0.5f, -0.5f,  0.0f,    0.0f, 1.0f, 0.0f,  // bottom left
+    -0.5f,  0.5f,  0.0f,    0.0f, 0.0f, 1.0f   // top left
 };
 
 unsigned int indices[] = {
@@ -50,8 +51,13 @@ int main()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // set vertex attributes
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0); // TODO: wtf
+
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)0); // TODO: wtf
     glEnableVertexAttribArray(0);
+    // color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     glUseProgram(shaderProgram);
 

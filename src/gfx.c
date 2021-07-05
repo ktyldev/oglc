@@ -37,6 +37,12 @@ void gfxInit()
 
     glewExperimental = GL_TRUE;
     glewInit();
+
+    // intiliased opengl
+
+    int availableAttributes;
+    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &availableAttributes);
+    //printf("max vertex attributes %d\n", availableAttributes);
 }
 
 unsigned int compileShaderProgram()
@@ -47,6 +53,8 @@ unsigned int compileShaderProgram()
     unsigned int shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vs);
     glAttachShader(shaderProgram, fs);
+
+    // TODO: check program linking success
     glLinkProgram(shaderProgram);
 
     glDeleteShader(vs);

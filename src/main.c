@@ -15,7 +15,12 @@ unsigned int indices[] = {
 };
 
 // forward declarations
+
+// input
 int checkQuit();
+
+// time
+float time();
 
 int main()
 {
@@ -23,8 +28,6 @@ int main()
     SDL_Window* window = getWindow();
 
     unsigned int shaderProgram = compileShaderProgram();
-
-    // TODO: check program linking success
 
     // vertex array object
     unsigned int VAO;
@@ -50,17 +53,32 @@ int main()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0); // TODO: wtf
     glEnableVertexAttribArray(0);
 
+    glUseProgram(shaderProgram);
+
     // render loop
     while (!checkQuit())
     {
-        glUseProgram(shaderProgram);
+        // clear background
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
 
+        // update uniforms
+        float time = (float)SDL_GetTicks() / 1000.0f;
+        float greenValue = (sin(time)/2.0f)+0.5f;
+        int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+        glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+
+        // draw
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
         SDL_GL_SwapWindow(window);
     }
 
     return 0;
+}
+
+float time()
+{
+    return (float)SDL_GetTicks() / 1000.0f; // ms / 1000.0 = seconds since start
 }
 
 int checkQuit()

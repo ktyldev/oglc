@@ -2,48 +2,39 @@
 
 #include "gfx.h"
 
-// data !
-const char* vertShaderPath = "res/shader/shader.vert";
-const char* fragShaderPath = "res/shader/shader.frag";
-
 float vertices[] = {
-    -0.5f, -0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.0f,  0.5f, 0.0f
+     0.5f,  0.5f,  0.0f, // top right
+     0.5f, -0.5f,  0.0f, // bottom right
+    -0.5f, -0.5f,  0.0f, // bottom left
+    -0.5f,  0.5f,  0.0f  // top left
+};
+
+unsigned int indices[] = {
+    0, 1, 3,
+    1, 2, 3
 };
 
 // forward declarations
 int checkQuit();
 
-
 int main()
 {
-    // initialise opengl graphics context
-    const struct GraphicsContext ctx = createContext();
+    gfxInit();
+    SDL_Window* window = getWindow();
 
-    // compile shaders
-    printf(":: compiling shaders\n");
-    GLuint vertShader = compileShader(vertShaderPath, GL_VERTEX_SHADER);
-    GLuint fragShader = compileShader(fragShaderPath, GL_FRAGMENT_SHADER);
-
-    printf(":: linking shader program\n");
-    unsigned int shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertShader);
-    glAttachShader(shaderProgram, fragShader);
-    glLinkProgram(shaderProgram);
-
-    glDeleteShader(vertShader);
-    glDeleteShader(fragShader);
+    unsigned int shaderProgram = compileShaderProgram();
 
     // TODO: check program linking success
 
-    // set up vertex array object
+    // vertex array object
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
-
-    // set up vertex buffer object
+    // vertex buffer object
     unsigned int VBO;                                                   
     glGenBuffers(1, &VBO);
+    // element buffer object
+    unsigned int EBO;
+    glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
 
@@ -51,18 +42,22 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, VBO);                                         // bind it to the GL_ARRAY_BUFFER target
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);  // copy user-defined data into currently bound buffer
 
+    // copy indices into a buffer for opengl
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
     // set vertex attributes
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0); // TODO: wtf
     glEnableVertexAttribArray(0);
 
-    // wait for exit
+    // render loop
     while (!checkQuit())
     {
         glUseProgram(shaderProgram);
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
 
-        SDL_GL_SwapWindow(ctx.window);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        SDL_GL_SwapWindow(window);
     }
 
     return 0;

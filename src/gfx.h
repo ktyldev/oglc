@@ -8,13 +8,10 @@
 
 #include "io.h"
 
-struct GraphicsContext
-{
-    SDL_Window*     window;
-    SDL_GLContext*  context;
-};
-
-SDL_Window* createWindow();
-struct GraphicsContext createContext();
+void gfxInit();
+SDL_Window* getWindow();
+SDL_GLContext* getContext();
 GLuint compileShader(const char* path, GLenum type);
+
+unsigned int compileShaderProgram();
 

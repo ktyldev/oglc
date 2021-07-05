@@ -1,6 +1,17 @@
 #include "gfx.h"
 
-SDL_Window* createWindow()
+const char* vertShaderPath = "res/shader/shader.vert";
+const char* fragShaderPath = "res/shader/shader.frag";
+
+SDL_Window* sdlWindow;
+SDL_GLContext* sdlContext;
+
+SDL_Window* getWindow() { return sdlWindow; }
+SDL_GLContext* getContext() { return sdlContext; }
+
+GLuint compileShader(const char* path, GLenum type);
+
+void gfxInit()
 {
     // load sdl modules
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
@@ -14,7 +25,7 @@ SDL_Window* createWindow()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-    SDL_Window* window = SDL_CreateWindow(
+    sdlWindow = SDL_CreateWindow(
             "oglc",
             SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED,
@@ -22,21 +33,26 @@ SDL_Window* createWindow()
             600,
             SDL_WINDOW_OPENGL);
 
-    return window;
-}
-
-struct GraphicsContext createContext()
-{
-    SDL_Window* window = createWindow();
-
-    SDL_GLContext context = SDL_GL_CreateContext(window);
+    sdlContext = SDL_GL_CreateContext(sdlWindow);
 
     glewExperimental = GL_TRUE;
     glewInit();
+}
 
-    struct GraphicsContext ctx = {window, context};
+unsigned int compileShaderProgram()
+{
+    GLuint vs = compileShader(vertShaderPath, GL_VERTEX_SHADER);
+    GLuint fs = compileShader(fragShaderPath, GL_FRAGMENT_SHADER);
 
-    return ctx;
+    unsigned int shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vs);
+    glAttachShader(shaderProgram, fs);
+    glLinkProgram(shaderProgram);
+
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+
+    return shaderProgram;
 }
 
 GLuint compileShader(const char* path, GLenum type)
@@ -73,8 +89,6 @@ GLuint compileShader(const char* path, GLenum type)
 
         exit(1);
     }
-
-    printf(":: . compiled shader %s! :D\n", path);
 
     return shader;
 }

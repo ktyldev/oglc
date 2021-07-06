@@ -9,9 +9,7 @@
 
 #include "io.h"
 
-void gfxInit();
-SDL_Window* getWindow();
-SDL_GLContext* getContext();
+SDL_Window* gfxInit();
 
 unsigned int compileShaderProgram();
 

@@ -6,12 +6,9 @@ const char* fragShaderPath = "res/shader/shader.frag";
 SDL_Window* sdlWindow;
 SDL_GLContext* sdlContext;
 
-SDL_Window* getWindow() { return sdlWindow; }
-SDL_GLContext* getContext() { return sdlContext; }
-
 GLuint compileShader(const char* path, GLenum type);
 
-void gfxInit()
+SDL_Window* gfxInit()
 {
     // load sdl modules
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
@@ -43,6 +40,8 @@ void gfxInit()
     int availableAttributes;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &availableAttributes);
     //printf("max vertex attributes %d\n", availableAttributes);
+
+    return sdlWindow;
 }
 
 unsigned int compileShaderProgram()

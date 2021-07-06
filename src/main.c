@@ -26,8 +26,7 @@ float time();
 
 int main()
 {
-    gfxInit();
-    SDL_Window* window = getWindow();
+    SDL_Window* window = gfxInit();
 
     // generate opengl texture
     unsigned int texture;

@@ -13,3 +13,7 @@ SDL_Window* gfxInit();
 
 unsigned int compileShaderProgram();
 
+void createTextureFromFile();
+void setVertexAttributes();
+void initBuffers();
+

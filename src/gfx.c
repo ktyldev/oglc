@@ -1,9 +1,6 @@
 #include "gfx.h"
 #include "stb_image.h"
 
-const char* vertShaderPath = "res/shader/shader.vert";
-const char* fragShaderPath = "res/shader/shader.frag";
-
 float vertices[] = {
     // position             color               uvs
      1.0f,  1.0f,  0.0f,    1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
@@ -22,7 +19,7 @@ SDL_GLContext* sdlContext;
 
 GLuint compileShader(const char* path, GLenum type);
 
-SDL_Window* gfxInit()
+SDL_Window* gfxInit(int width, int height)
 {
     // load sdl modules
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
@@ -40,8 +37,8 @@ SDL_Window* gfxInit()
             "oglc",
             SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED,
-            800,
-            600,
+            width,
+            height,
             SDL_WINDOW_OPENGL);
 
     sdlContext = SDL_GL_CreateContext(sdlWindow);
@@ -58,10 +55,10 @@ SDL_Window* gfxInit()
     return sdlWindow;
 }
 
-unsigned int compileShaderProgram()
+unsigned int compileQuadShaderProgram(const char* vsPath, const char* fsPath)
 {
-    GLuint vs = compileShader(vertShaderPath, GL_VERTEX_SHADER);
-    GLuint fs = compileShader(fragShaderPath, GL_FRAGMENT_SHADER);
+    GLuint vs = compileShader(vsPath, GL_VERTEX_SHADER);
+    GLuint fs = compileShader(fsPath, GL_FRAGMENT_SHADER);
 
     unsigned int shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vs);
@@ -70,10 +67,39 @@ unsigned int compileShaderProgram()
     // TODO: check program linking success
     glLinkProgram(shaderProgram);
 
+    GLint result = GL_FALSE;
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &result);
+    if (result == GL_FALSE)
+    {
+        GLint logLength = 0;
+        glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &logLength);
+
+        char err[logLength];
+        glGetProgramInfoLog(shaderProgram, logLength, NULL, err);
+
+        fputs("error linking quad shader program:\n", stderr);
+        fputs(err, stderr); 
+
+        exit(1);
+    }
+
     glDeleteShader(vs);
     glDeleteShader(fs);
 
     return shaderProgram;
+}
+
+unsigned int compileComputeShaderProgram(const char* computeShaderPath)
+{
+    GLuint cs = compileShader(computeShaderPath, GL_COMPUTE_SHADER);
+    GLuint computeProgram = glCreateProgram(); 
+    glAttachShader(computeProgram, cs);
+
+    glLinkProgram(computeProgram);
+
+    glDeleteShader(cs);
+
+    return computeProgram;
 }
 
 GLuint compileShader(const char* path, GLenum type)
@@ -129,7 +155,7 @@ void setVertexAttributes()
     glEnableVertexAttribArray(2);
 }
 
-void createTextureFromFile()
+void createTextureFromFile(const char* imagePath)
 {
     // create an opengl texture and bind it to the GL_TEXTURE_2D target
     unsigned int texture;
@@ -141,7 +167,6 @@ void createTextureFromFile()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_REPEAT);
 
     // load image data from file
-    const char* imagePath = "res/tex.png";
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(1);
     unsigned char* data = stbi_load(imagePath, &width, &height, &nrChannels, 0);
@@ -160,6 +185,24 @@ void createTextureFromFile()
     stbi_image_free(data);
 }
 
+GLuint createWriteOnlyTexture(int width, int height)
+{
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+    glBindImageTexture(0, texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+    return texture;
+}
+
 void initBuffers()
 {
     unsigned int VAO, VBO, EBO;
@@ -174,4 +217,31 @@ void initBuffers()
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+}
+
+void printWorkGroupLimits()
+{
+    int workGroupCount[3];
+    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &workGroupCount[0]);
+    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &workGroupCount[1]);
+    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &workGroupCount[2]);
+    printf(
+            "max work group counts x:%i y:%i z:%i\n", 
+            workGroupCount[0], 
+            workGroupCount[1], 
+            workGroupCount[2]);
+
+    int workGroupSize[3];
+    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &workGroupSize[0]);
+    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &workGroupSize[1]);
+    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &workGroupSize[2]);
+    printf(
+            "max work group sizes x:%i y:%i z:%i\n", 
+            workGroupSize[0], 
+            workGroupSize[1], 
+            workGroupSize[2]);
+
+    int workGroupInvocations;
+    glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &workGroupInvocations);
+    printf("max work group invocations %i\n", workGroupInvocations);
 }

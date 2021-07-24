@@ -1,5 +1,4 @@
 #include "main.h"
-
 #include "gfx.h"
 
 // forward declarations
@@ -12,8 +11,8 @@ float time();
 
 int main()
 {
-    int width = 800;
-    int height = 600;
+    int width = 420;
+    int height = 420;
     const char* texPath = "res/tex.png";
 
     // create a window and opengl context
@@ -40,9 +39,9 @@ int main()
 
         // update uniforms
         float t = time();
-        t = (sin(t)/2.0f)+0.5f;
+        float sin_t = sin(t);
         int tLocation = glGetUniformLocation(computeProgram, "t");
-        glUniform1f(tLocation, t);
+        glUniform4f(tLocation, t, (1.0 + sin_t)*0.5, 0.0f, 0.0f);
 
         // dispatch compute shader
         glDispatchCompute((GLuint)width, (GLuint)height, 1);
@@ -54,8 +53,9 @@ int main()
         glUseProgram(quadProgram);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        glActiveTexture(GL_TEXTURE0);                   // use computed texture
+        glActiveTexture(GL_TEXTURE0);                                           // use computed texture
         glBindTexture(GL_TEXTURE_2D, textureOutput);
+
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         // swip swap

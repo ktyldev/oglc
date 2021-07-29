@@ -7,11 +7,7 @@ layout(rgba32f, binding = 0) uniform image2D img_output;    // rgba32f defines i
 
 const float INF = 1000000.0f;
 
-struct Sphere 
-{
-    vec3 center;
-    float radius;
-};
+#include sphere.glsl
 
 struct Ray 
 {
@@ -47,7 +43,7 @@ void intersectSphere(Ray ray, inout RayHit bestHit, Sphere sphere)
 Ray createCameraRay(vec2 uv)
 {
     // transform -1..1 -> 0..1
-    uv = uv*0.5+0.5;
+    //uv = uv*0.5+0.5;
     //uv.x=1-uv.x;
 
     // transform camera origin to world space

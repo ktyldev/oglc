@@ -13,7 +13,6 @@ int main()
 {
     int width = 420;
     int height = 420;
-    const char* texPath = "res/tex.png";
 
     // create a window and opengl context
     SDL_Window* window = gfxInit(width, height);
@@ -23,10 +22,11 @@ int main()
     printWorkGroupLimits();
 
     // compile shader programs
-    unsigned int computeProgram = compileComputeShaderProgram("res/shader/compute.glsl");
+    unsigned int computeProgram = compileComputeShaderProgram(
+            "bin/res/compute.compute");
     unsigned int quadProgram = compileQuadShaderProgram(
-            "res/shader/shader.vert", 
-            "res/shader/shader.frag");
+            "bin/res/shader.vert", 
+            "bin/res/shader.frag");
 
     // initialise quad
     initBuffers();
@@ -51,8 +51,8 @@ int main()
 
         // normal drawing pass
         glUseProgram(quadProgram);
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        //glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        //glClear(GL_COLOR_BUFFER_BIT);
         glActiveTexture(GL_TEXTURE0);                                           // use computed texture
         glBindTexture(GL_TEXTURE_2D, textureOutput);
 

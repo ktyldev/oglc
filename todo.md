@@ -1,7 +1,11 @@
 * [x] basic opengl initialisation
 * [-] shader pre-processor
     * [x] ppp.py
-    * [ ] shader src and out
+    * [ ] read root shaders from src/shader/
+    * [ ] read include shaders from src shader/ include
+    * [ ] write processed shaders to bin/res/shader/
+    * [ ] attempt to compile processed shaders
+   
 * [ ] output frame to a file
     * [ ] detect input keydown s
     * [ ] get timestamp

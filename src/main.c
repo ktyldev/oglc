@@ -23,7 +23,7 @@ int main()
 
     // compile shader programs
     unsigned int computeProgram = compileComputeShaderProgram(
-            "bin/res/compute.compute");
+            "bin/res/rt.compute");
     unsigned int quadProgram = compileQuadShaderProgram(
             "bin/res/shader.vert", 
             "bin/res/shader.frag");
@@ -32,16 +32,30 @@ int main()
     initBuffers();
     setVertexAttributes();
 
+
     // render loop
     while (!checkQuit())
     {
         glUseProgram(computeProgram);
 
         // update uniforms
-        float t = time();
+        float t = time();                                           // time
         float sin_t = sin(t);
         int tLocation = glGetUniformLocation(computeProgram, "t");
-        glUniform4f(tLocation, t, (1.0 + sin_t)*0.5, 0.0f, 0.0f);
+        glUniform4f(tLocation, t, sin_t, (1.0 + sin_t)*0.5, 0.0f);
+
+        // form view space axes
+        vec3 u,v;
+        vec3 up = {0,1.0,0};
+        vec3 w = {0,sin_t*0.1,-1.0};
+        glm_vec3_norm(w);
+        glm_vec3_cross(up,w,u);
+        glm_vec3_norm(u);
+        glm_vec3_cross(w, u, v);
+        int wLocation = glGetUniformLocation(computeProgram, "w");
+        glUniform3f(wLocation+0, w[0], w[1], w[2]);                 // w
+        glUniform3f(wLocation+1, u[0], u[1], u[2]);                 // u
+        glUniform3f(wLocation+2, v[0], v[1], v[2]);                 // v
 
         // dispatch compute shader
         glDispatchCompute((GLuint)width, (GLuint)height, 1);
@@ -51,8 +65,6 @@ int main()
 
         // normal drawing pass
         glUseProgram(quadProgram);
-        //glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        //glClear(GL_COLOR_BUFFER_BIT);
         glActiveTexture(GL_TEXTURE0);                                           // use computed texture
         glBindTexture(GL_TEXTURE_2D, textureOutput);
 

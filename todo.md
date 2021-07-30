@@ -1,19 +1,18 @@
 * [x] basic opengl initialisation
-* [-] shader pre-processor
+* [x] shader pre-processor
     * [x] ppp.py
-    * [ ] read root shaders from src/shader/
-    * [ ] read include shaders from src shader/ include
-    * [ ] write processed shaders to bin/res/shader/
-    * [ ] attempt to compile processed shaders
-   
-* [ ] output frame to a file
-    * [ ] detect input keydown s
-    * [ ] get timestamp
-    * [ ] create and write to file (maybe with `stb_image.h`?)
+    * [x] read root shaders
+    * [x] read include shaders
+    * [x] write processed shaders to bin/res/shader/
+    * [x] compile processed shaders
 * [-] render image with compute shader
     * [x] render a texture to a full-screen quad
     * [x] pass uniforms to texture to animate it
-    * [ ] ray tracing time
+    * [-] ray tracing time
+        * [-] perspective
+        * [-] depth
+            * [x] acquire value
+            * [ ] depth texture
         * [ ] acquire randomness
         * [ ] acceleration time ! 
             * [ ] auxiliary textures: g buffer
@@ -22,6 +21,10 @@
         * [ ] mandelbrot
         * [ ] julia
         * [ ] trongle
+* [ ] output frame to a file
+    * [ ] detect input keydown s
+    * [ ] get timestamp
+    * [ ] create and write to file (maybe with `stb_image.h`?)
 * [ ] command line arguments
     * [ ] help
     * [ ] window dimensions

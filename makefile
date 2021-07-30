@@ -19,7 +19,7 @@ SHADER_TARGETS = $(SHADERS:$(SHADER_ROOT_DIR)/%.glsl=$(SHADER_TARGET_DIR)/%.comp
 TARGET = $(BIN_DIR)/oglc
 
 CC = gcc
-LIBS = `pkg-config --static --libs glew sdl2`
+LIBS = `pkg-config --static --libs glew sdl2 cglm`
 CFLAGS = -I$(SRC_DIR) -Wall
 
 SRC = $(shell find $(SRC_DIR) -name *.c)

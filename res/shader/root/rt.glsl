@@ -2,10 +2,14 @@
 
 layout (location = 1) uniform vec4 t;
 
+layout (location = 2) uniform vec3 w;                       // view space axes
+layout (location = 3) uniform vec3 u;
+layout (location = 4) uniform vec3 v;
+
 layout(local_size_x = 1, local_size_y = 1) in;              // size of local work group - 1 pixel
 layout(rgba32f, binding = 0) uniform image2D img_output;    // rgba32f defines internal format, image2d for random write to output texture
 
-const float INF = 1000000.0f;
+const float INF = 1000.0f;
 
 #include sphere.glsl
 
@@ -54,8 +58,6 @@ Ray createCameraRay(vec2 uv)
     // float2 rd = _CameraLensRadius * randomInUnitDisk();
     // float3 offset = _CameraU * rd.x + _CameraV * rd.y;
 
-    // ...
-
     float max_x = 5.0;
     float max_y = 5.0;
 
@@ -87,16 +89,17 @@ void main()
     hit.normal = vec3(0.0,0.0,0.0);
 
     Sphere sphere;
-    sphere.center = vec3(0.0,0.0,10.0);
-    sphere.radius = 3.0+t.y;
+    //sphere.center = vec3(0.0,0.0,10.0+0.5*t.y);
+    sphere.center = w*-10.0;
+    sphere.radius = 4.0;
 
     // ray-sphere intersection
     intersectSphere(ray, hit, sphere);
 
-    if (hit.distance < INF)
-    {
-        pixel = vec4(t.y,1.0-t.y,1.0,1.0);
-    }
+    float depth = (hit.distance-6.0)/4.0;
+
+    pixel = vec4(t.z,1.0-t.z,depth,1.0);
+    pixel *= (1.0-depth);
 
     // output to a specific pixel in the image
     imageStore(img_output, pixel_coords, pixel);

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+executable="$1"
+prime="prime-run"
+
+if command -v $prime &> /dev/null
+then
+    echo "launching $executable with nvidia prime offloading"
+    $prime $executable
+else
+    $executable
+fi

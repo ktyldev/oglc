@@ -48,9 +48,11 @@ SDL_Window* gfxInit(int width, int height)
 
     // intiliased opengl
 
+    printf("%s\n", glGetString(GL_RENDERER));
+
     int availableAttributes;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &availableAttributes);
-    //printf("max vertex attributes %d\n", availableAttributes);
+    printf("max vertex attributes %d\n", availableAttributes);
 
     return sdlWindow;
 }

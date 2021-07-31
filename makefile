@@ -17,6 +17,7 @@ SHADER_INCLUDES = $(shell find $(SHADER_INCLUDE_DIR) -name *.glsl)
 SHADER_TARGETS = $(SHADERS:$(SHADER_ROOT_DIR)/%.glsl=$(SHADER_TARGET_DIR)/%.compute)
 
 TARGET = $(BIN_DIR)/oglc
+LAUNCH = "./launch"
 
 CC = gcc
 LIBS = `pkg-config --static --libs glew sdl2 cglm`
@@ -47,6 +48,6 @@ clean:
 	-rm */*.o
 
 run: $(TARGET)
-	$(TARGET)
+	$(LAUNCH) $(TARGET)
 
 .PHONY: run clean

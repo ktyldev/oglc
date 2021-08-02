@@ -26,10 +26,10 @@ int main()
 
     // compile shader programs
     unsigned int computeProgram = compileComputeShaderProgram(
-            "bin/res/rt.compute");
+            "bin/rt.compute");
     unsigned int quadProgram = compileQuadShaderProgram(
-            "bin/res/shader.vert", 
-            "bin/res/shader.frag");
+            "bin/shader.vert", 
+            "bin/shader.frag");
 
     // initialise quad
     initBuffers();

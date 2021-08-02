@@ -1,12 +1,11 @@
 SRC_DIR = src
 BIN_DIR = bin
-RES_DIR = res
+SHADER_DIR 			= shader
 
-SHADER_DIR 			= $(RES_DIR)/shader
 SHADER_QUAD_DIR 	= $(SHADER_DIR)/quad
 SHADER_ROOT_DIR 	= $(SHADER_DIR)/root
 SHADER_INCLUDE_DIR 	= $(SHADER_DIR)/include
-SHADER_TARGET_DIR 	= $(BIN_DIR)/$(RES_DIR)
+SHADER_TARGET_DIR 	= $(BIN_DIR)
 
 # find files in SHADER_ROOT_DIR
 # top level compute shader programs

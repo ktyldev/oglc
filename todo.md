@@ -9,7 +9,7 @@
     * [x] render a texture to a full-screen quad
     * [x] pass uniforms to texture to animate it
     * [-] ray tracing time
-        * [-] perspective
+        * [x] perspective
         * [-] depth
             * [x] acquire value
             * [ ] depth texture

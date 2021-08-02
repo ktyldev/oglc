@@ -2,14 +2,19 @@
 
 layout (location = 1) uniform vec4 t;
 
-layout (location = 2) uniform vec3 w;                       // view space axes
-layout (location = 3) uniform vec3 u;
-layout (location = 4) uniform vec3 v;
+layout (location = 2) uniform vec3 _w;                       // view space axes
+layout (location = 3) uniform vec3 _u;
+layout (location = 4) uniform vec3 _v;
+
+layout (location = 5) uniform mat4 _cameraInverseProjection;
+layout (location = 6) uniform vec3 _camh;
+layout (location = 7) uniform vec3 _camv;
+layout (location = 8) uniform vec3 _camll;
 
 layout(local_size_x = 1, local_size_y = 1) in;              // size of local work group - 1 pixel
 layout(rgba32f, binding = 0) uniform image2D img_output;    // rgba32f defines internal format, image2d for random write to output texture
 
-const float INF = 1000.0f;
+const float INF = 20.0;
 
 #include sphere.glsl
 
@@ -24,6 +29,7 @@ struct RayHit
     vec3 position;
     float distance;
     vec3 normal;
+    vec3 albedo;
 };
 
 void intersectSphere(Ray ray, inout RayHit bestHit, Sphere sphere)
@@ -41,13 +47,14 @@ void intersectSphere(Ray ray, inout RayHit bestHit, Sphere sphere)
         bestHit.distance = t;
         bestHit.position = ray.origin + t*ray.direction;
         bestHit.normal = normalize(bestHit.position-sphere.center);
+        bestHit.albedo = sphere.albedo;
     }
 }
 
 Ray createCameraRay(vec2 uv)
 {
     // transform -1..1 -> 0..1
-    //uv = uv*0.5+0.5;
+    uv = uv*0.5+0.5;
     //uv.x=1-uv.x;
 
     // transform camera origin to world space
@@ -58,12 +65,22 @@ Ray createCameraRay(vec2 uv)
     // float2 rd = _CameraLensRadius * randomInUnitDisk();
     // float3 offset = _CameraU * rd.x + _CameraV * rd.y;
 
+    // invert perspective projection of view space position
+    //vec3 dir = mul(_cameraInverseProjection, float4(uv, 0.0, 1.0)).xyz;
+
+    // TODO: transform direction from camera to world space (move camera around!)
+
+    vec3 dir;
+    dir = uv.x*_camh + uv.y*_camv;
+    dir = _camll + uv.x*_camh + uv.y*_camv;
+    dir = normalize(dir);
+
     float max_x = 5.0;
     float max_y = 5.0;
 
     Ray ray;
-    ray.origin = vec3(uv.x * max_x, uv.y * max_y, 0.0);
-    ray.direction = vec3(0.0,0.0,1.0);                                          // ortho forwards
+    ray.origin = vec3(0.0,0.0,0.0);
+    ray.direction = dir;
 
     return ray;
 }
@@ -87,18 +104,33 @@ void main()
     hit.position = vec3(0.0,0.0,0.0);
     hit.distance = INF;
     hit.normal = vec3(0.0,0.0,0.0);
+    hit.albedo = vec3(0.0,0.0,0.0);
+
+    vec3 spheresCenter = _w*-10.0;
+
+    Sphere s1;
+    s1.center = spheresCenter+vec3(sin(t.x),0.0,cos(t.x))*2.5;
+    s1.radius = 2.0;
+    s1.albedo = vec3(1.0,0.0,0.0);
+
+    Sphere s2;
+    s2.center = spheresCenter-vec3(sin(t.x),0.0,cos(t.x))*2.5;
+    s2.radius = 2.0;
+    s2.albedo = vec3(0.0,0.0,1.0);
 
     Sphere sphere;
-    //sphere.center = vec3(0.0,0.0,10.0+0.5*t.y);
-    sphere.center = w*-10.0;
+    sphere.center = _w*-10.0;
+    sphere.center += vec3(0.0,0.0,t.y);
     sphere.radius = 4.0;
 
     // ray-sphere intersection
-    intersectSphere(ray, hit, sphere);
+    intersectSphere(ray, hit, s1);
+    intersectSphere(ray, hit, s2);
 
-    float depth = (hit.distance-6.0)/4.0;
+    // TODO: write depth to texture
+    float depth = hit.distance/INF;
 
-    pixel = vec4(t.z,1.0-t.z,depth,1.0);
+    pixel = vec4(hit.albedo,1.0);
     pixel *= (1.0-depth);
 
     // output to a specific pixel in the image

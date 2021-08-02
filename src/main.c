@@ -66,7 +66,7 @@ void updateUniforms(GLuint shaderProgram)
 {
     float t = time();                                           // time
     float sin_t = sin(t);
-    int tLocation = glGetUniformLocation(shaderProgram, "t");
+    int tLocation = glGetUniformLocation(shaderProgram, "_t");
     glUniform4f(tLocation, t, sin_t, (1.0 + sin_t)*0.5, 0.0f);
 
     updateCameraUniforms(shaderProgram);
@@ -85,10 +85,31 @@ void updateCameraUniforms(GLuint shaderProgram)
     int inverseProjLocation = glGetUniformLocation(shaderProgram, "_cameraInverseProjection");
     glUniformMatrix4fv(inverseProjLocation, 1, GL_FALSE, proji[0]);
 
+    float t = time();
+
+    vec3 cdir, cright, cup;
+    vec3 up = {0.1*sin(t),1.0,0.2*cos(t)};                                    // world up
+    glm_vec3_normalize(up);
+
+    // lookat vector and view matrix
+    float d = 10.0 + sin(t);
+    vec3 cpos = {sin(-t)*d,cos(0.5*t)*5.0,cos(-t)*d};                        // camera pos
+    vec3 tpos = {0.0,0.0,0.0};                                  // target pos
+    glm_vec3_sub(cpos,tpos,cdir);                               // look dir (inverted cause opengl noises)
+    glm_vec3_normalize(cdir); 
+    glm_vec3_cross(up,cdir,cright);                             // camera right
+    glm_vec3_normalize(cright);                                 
+    glm_vec3_cross(cdir,cright,cup);                            // camera up
+    glm_vec3_normalize(cup);
+    mat4 view;
+    glm_lookat(cpos,tpos,cup,view);
+    int cposLocation = glGetUniformLocation(shaderProgram, "_cpos");
+    glUniform3f(cposLocation, cpos[0],cpos[1],cpos[2]);
+
     // form view space axes
-    vec3 u,v;
-    vec3 up = {0.0,1.0,0.0};
-    vec3 w = {0.0,0.0,-1.0};
+    vec3 w,u,v;
+    glm_vec3_copy(cdir,w);
+
     glm_vec3_norm(w);
     glm_vec3_cross(up,w,u);
     glm_vec3_norm(u);
@@ -98,8 +119,9 @@ void updateCameraUniforms(GLuint shaderProgram)
     glUniform3f(wLocation+1, u[0], u[1], u[2]);                 // u
     glUniform3f(wLocation+2, v[0], v[1], v[2]);                 // v
 
+
     // get camera properties
-    float theta = glm_rad(fovy);                                    // convert fovy to radians
+    float theta = glm_rad(fovy);                                // convert fov to radians
     float h = tan(theta*0.5);
     float vph = 2.0*h;                                          // viewport height
     float vpw = aspect*vph;                                     // viewport width

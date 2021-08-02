@@ -1,20 +1,23 @@
 #version 430
 
-layout (location = 1) uniform vec4 t;
+// TODO: do i actually need explicit location descriptors?
+layout (location = 1)   uniform vec4 _t;
 
-layout (location = 2) uniform vec3 _w;                       // view space axes
-layout (location = 3) uniform vec3 _u;
-layout (location = 4) uniform vec3 _v;
+layout (location = 2)   uniform vec3 _w;                        // view space axes
+layout (location = 3)   uniform vec3 _u;
+layout (location = 4)   uniform vec3 _v;
 
-layout (location = 5) uniform mat4 _cameraInverseProjection;
-layout (location = 6) uniform vec3 _camh;
-layout (location = 7) uniform vec3 _camv;
-layout (location = 8) uniform vec3 _camll;
+layout (location = 5)   uniform mat4 _cameraInverseProjection;
+layout (location = 6)   uniform vec3 _camh;
+layout (location = 7)   uniform vec3 _camv;
+layout (location = 8)   uniform vec3 _camll;
+layout (location = 9)   uniform vec3 _cpos;
+layout (location = 10)  uniform vec3 _tpos;                     // target
 
-layout(local_size_x = 1, local_size_y = 1) in;              // size of local work group - 1 pixel
-layout(rgba32f, binding = 0) uniform image2D img_output;    // rgba32f defines internal format, image2d for random write to output texture
+layout(local_size_x = 1, local_size_y = 1) in;                  // size of local work group - 1 pixel
+layout(rgba32f, binding = 0) uniform image2D img_output;        // rgba32f defines internal format, image2d for random write to output texture
 
-const float INF = 20.0;
+const float INF = 30.0;
 
 #include sphere.glsl
 
@@ -57,6 +60,8 @@ Ray createCameraRay(vec2 uv)
     uv = uv*0.5+0.5;
     //uv.x=1-uv.x;
 
+    vec3 target = vec3(0,0,0);
+
     // transform camera origin to world space
     // TODO: c2w matrix!! for now we just assume the camera is at the origin
     // float3 origin = mul(_CameraToWorld, float4(0.0,0.0,0.0,1.0)).xyz;
@@ -79,11 +84,11 @@ Ray createCameraRay(vec2 uv)
     float max_y = 5.0;
 
     Ray ray;
-    ray.origin = vec3(0.0,0.0,0.0);
+    ray.origin = _cpos;
     ray.direction = dir;
 
     return ray;
-}
+};
 
 void main()
 {
@@ -106,26 +111,30 @@ void main()
     hit.normal = vec3(0.0,0.0,0.0);
     hit.albedo = vec3(0.0,0.0,0.0);
 
-    vec3 spheresCenter = _w*-10.0;
+    vec3 spheresCenter = vec3(0.0,0.0,0.0);
 
+    float t = _t.x;
     Sphere s1;
-    s1.center = spheresCenter+vec3(sin(t.x),0.0,cos(t.x))*2.5;
+    s1.center = spheresCenter+vec3(sin(t),0.0,cos(t))*2.5;
     s1.radius = 2.0;
     s1.albedo = vec3(1.0,0.0,0.0);
 
+    t+=3.1415/1.5;
     Sphere s2;
-    s2.center = spheresCenter-vec3(sin(t.x),0.0,cos(t.x))*2.5;
+    s2.center = spheresCenter+vec3(sin(t),0.0,cos(t))*2.5;
     s2.radius = 2.0;
-    s2.albedo = vec3(0.0,0.0,1.0);
+    s2.albedo = vec3(0.0,1.0,0.0);
 
-    Sphere sphere;
-    sphere.center = _w*-10.0;
-    sphere.center += vec3(0.0,0.0,t.y);
-    sphere.radius = 4.0;
+    t+=3.1415/1.5;
+    Sphere s3;
+    s3.center = spheresCenter+vec3(sin(t),0.0,cos(t))*2.5;
+    s3.radius = 2.0;
+    s3.albedo = vec3(0.0,0.0,1.0);
 
     // ray-sphere intersection
     intersectSphere(ray, hit, s1);
     intersectSphere(ray, hit, s2);
+    intersectSphere(ray, hit, s3);
 
     // TODO: write depth to texture
     float depth = hit.distance/INF;

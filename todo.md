@@ -10,6 +10,7 @@
     * [x] pass uniforms to texture to animate it
     * [-] ray tracing time
         * [x] perspective
+        * [x] camera lookat
         * [-] depth
             * [x] acquire value
             * [ ] depth texture

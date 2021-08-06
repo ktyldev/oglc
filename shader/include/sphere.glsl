@@ -1,8 +1,6 @@
 struct Sphere
 {
-    vec3 center;
-    float radius;
+    // (c.x,c.y,c.z,r)
+    vec4 cr;
     vec3 albedo;
-    vec3 specular;
-    vec3 emission;
 };

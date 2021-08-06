@@ -1,5 +1,7 @@
 #version 430
 
+#include sphere.glsl
+
 // TODO: do i actually need explicit location descriptors?
 layout (location = 1)   uniform vec4 _t;
 
@@ -14,12 +16,15 @@ layout (location = 8)   uniform vec3 _camll;
 layout (location = 9)   uniform vec3 _cpos;
 layout (location = 10)  uniform vec3 _tpos;                     // target
 
+const int SPHERES = 250; // 253 is the maximum?? TODO: use uniform buffer objects
+layout (location = 12)  uniform int _activeSpheres;
+layout (location = 13)  uniform Sphere _spheres[SPHERES];
+
 layout(local_size_x = 1, local_size_y = 1) in;                  // size of local work group - 1 pixel
 layout(rgba32f, binding = 0) uniform image2D img_output;        // rgba32f defines internal format, image2d for random write to output texture
 
-const float INF = 30.0;
-
-#include sphere.glsl
+const float INF = 20.0;
+const float PI = 3.14159;
 
 struct Ray 
 {
@@ -37,9 +42,12 @@ struct RayHit
 
 void intersectSphere(Ray ray, inout RayHit bestHit, Sphere sphere)
 {
-    vec3 d = ray.origin-sphere.center;
+    vec3 c = sphere.cr.xyz;
+    float r = sphere.cr.w;
+
+    vec3 d = ray.origin-c;
     float p1 = -dot(ray.direction,d);
-    float p2sqr = p1*p1-dot(d,d)+sphere.radius*sphere.radius;
+    float p2sqr = p1*p1-dot(d,d)+r*r;
 
     if (p2sqr < 0) return;
 
@@ -49,7 +57,7 @@ void intersectSphere(Ray ray, inout RayHit bestHit, Sphere sphere)
     {
         bestHit.distance = t;
         bestHit.position = ray.origin + t*ray.direction;
-        bestHit.normal = normalize(bestHit.position-sphere.center);
+        bestHit.normal = normalize(bestHit.position-c);
         bestHit.albedo = sphere.albedo;
     }
 }
@@ -61,19 +69,6 @@ Ray createCameraRay(vec2 uv)
     //uv.x=1-uv.x;
 
     vec3 target = vec3(0,0,0);
-
-    // transform camera origin to world space
-    // TODO: c2w matrix!! for now we just assume the camera is at the origin
-    // float3 origin = mul(_CameraToWorld, float4(0.0,0.0,0.0,1.0)).xyz;
-
-    // TODO: offset from centre of the lens for depth of field
-    // float2 rd = _CameraLensRadius * randomInUnitDisk();
-    // float3 offset = _CameraU * rd.x + _CameraV * rd.y;
-
-    // invert perspective projection of view space position
-    //vec3 dir = mul(_cameraInverseProjection, float4(uv, 0.0, 1.0)).xyz;
-
-    // TODO: transform direction from camera to world space (move camera around!)
 
     vec3 dir;
     dir = uv.x*_camh + uv.y*_camv;
@@ -111,30 +106,10 @@ void main()
     hit.normal = vec3(0.0,0.0,0.0);
     hit.albedo = vec3(0.0,0.0,0.0);
 
-    vec3 spheresCenter = vec3(0.0,0.0,0.0);
-
-    float t = _t.x;
-    Sphere s1;
-    s1.center = spheresCenter+vec3(sin(t),0.0,cos(t))*2.5;
-    s1.radius = 2.0;
-    s1.albedo = vec3(1.0,0.0,0.0);
-
-    t+=3.1415/1.5;
-    Sphere s2;
-    s2.center = spheresCenter+vec3(sin(t),0.0,cos(t))*2.5;
-    s2.radius = 2.0;
-    s2.albedo = vec3(0.0,1.0,0.0);
-
-    t+=3.1415/1.5;
-    Sphere s3;
-    s3.center = spheresCenter+vec3(sin(t),0.0,cos(t))*2.5;
-    s3.radius = 2.0;
-    s3.albedo = vec3(0.0,0.0,1.0);
-
-    // ray-sphere intersection
-    intersectSphere(ray, hit, s1);
-    intersectSphere(ray, hit, s2);
-    intersectSphere(ray, hit, s3);
+    for (int i = 0; i < _activeSpheres; i++)
+    {
+        intersectSphere(ray, hit, _spheres[i]);
+    }
 
     // TODO: write depth to texture
     float depth = hit.distance/INF;

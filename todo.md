@@ -7,10 +7,14 @@
     * [x] compile processed shaders
 * [-] render image with compute shader
     * [x] render a texture to a full-screen quad
-    * [x] pass uniforms to texture to animate it
+    * [x] pass uniforms to shader to animate it
+    * [x] pass structed uniform buffers
     * [-] ray tracing time
         * [x] perspective
         * [x] camera lookat
+        * [ ] do a bounce
+        * [ ] do a 'flect
+        * [ ] do a 'fract
         * [-] depth
             * [x] acquire value
             * [ ] depth texture

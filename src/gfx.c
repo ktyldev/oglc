@@ -54,6 +54,10 @@ SDL_Window* gfxInit(int width, int height)
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &availableAttributes);
     printf("max vertex attributes %d\n", availableAttributes);
 
+    int uniformLocations;
+    glGetIntegerv(GL_MAX_UNIFORM_LOCATIONS, &uniformLocations);
+    printf("max uniform locations %d\n", uniformLocations);
+
     return sdlWindow;
 }
 

@@ -23,7 +23,7 @@ layout (location = 13)  uniform Sphere _spheres[SPHERES];
 layout(local_size_x = 1, local_size_y = 1) in;                  // size of local work group - 1 pixel
 layout(rgba32f, binding = 0) uniform image2D img_output;        // rgba32f defines internal format, image2d for random write to output texture
 
-const float INF = 20.0;
+const float INF = 30.0;
 const float PI = 3.14159;
 
 struct Ray 
@@ -74,9 +74,6 @@ Ray createCameraRay(vec2 uv)
     dir = uv.x*_camh + uv.y*_camv;
     dir = _camll + uv.x*_camh + uv.y*_camv;
     dir = normalize(dir);
-
-    float max_x = 5.0;
-    float max_y = 5.0;
 
     Ray ray;
     ray.origin = _cpos;

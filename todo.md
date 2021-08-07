@@ -17,11 +17,11 @@
         * [ ] do a 'fract
         * [-] depth
             * [x] acquire value
-            * [ ] depth texture
         * [ ] acquire randomness
         * [ ] acceleration time ! 
-            * [ ] auxiliary textures: g buffer
-            * [ ] frame blending
+            * [ ] auxiliary textures
+                * [ ] depth buffer
+                * [ ] frame blending
     * [ ] maybe do some fractals
         * [ ] mandelbrot
         * [ ] julia

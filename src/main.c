@@ -1,5 +1,6 @@
 #include "main.h"
 #include "gfx.h"
+#include "time.h"
 
 #include "sphere.h"
 
@@ -11,13 +12,8 @@ const int HEIGHT = 420;
 // input
 int checkQuit();
 
-// time
-float time();
-
 void updateUniforms(GLuint shaderProgram);
 void updateCameraUniforms(GLuint shaderProgram);
-
-void updateSphereUniform(GLuint shaderProgram, struct Sphere sphere);
 
 int main()
 {
@@ -66,51 +62,10 @@ int main()
     return 0;
 }
 
-void makeSpheres(struct Sphere *spheres, int count)
-{
-    float t = time();
-
-    vec3 albedos[] = 
-    {
-        {0.0,0.0,1.0},
-        {0.0,1.0,0.0},
-        {0.0,1.0,1.0},
-        {1.0,0.0,0.0},
-        {1.0,0.0,1.0},
-        {1.0,1.0,0.0},
-        {1.0,1.0,1.0}
-    };
-
-    // distance from center
-    float d = 6.0;
-    float radius = 0.5;
-    float x;
-    vec3 sc = {0.0,0.0,1.0};
-
-    for (int i = 0; i < count; i++)
-    {
-        x = t*0.1 + 2.0*CGLM_PI * i/(float)count;
-        sc[0] = sin(x)*d;
-        sc[2] = cos(x)*d;
-
-        float ic = i/(float)count;
-        float r = sin(ic);
-        float g = sin(ic+1.0);
-        float b = sin(ic+2.0);
-        g = 1.0;
-        b = 1.0;
-
-        vec3 col = {r,g,b};
-        glm_vec3_scale(col, 0.5, col);
-        glm_vec3_adds(col, 0.5, col);
-
-        spheres[i] = makeSphere(sc,radius,col);
-    }
-}
 
 void updateUniforms(GLuint shaderProgram)
 {
-    float t = time();                                           // time
+    float t = now();
     float sin_t = sin(t);
     int tLocation = glGetUniformLocation(shaderProgram, "_t");
     glUniform4f(tLocation, t, sin_t, (1.0 + sin_t)*0.5, 0.0f);
@@ -137,7 +92,7 @@ void updateCameraUniforms(GLuint shaderProgram)
     int inverseProjLocation = glGetUniformLocation(shaderProgram, "_cameraInverseProjection");
     glUniformMatrix4fv(inverseProjLocation, 1, GL_FALSE, proji[0]);
 
-    float t = time();
+    float t = now();
 
     vec3 cdir, cright, cup;
     vec3 up = {0.1*sin(t),1.0,0.2*cos(t)};                                    // world up
@@ -145,7 +100,7 @@ void updateCameraUniforms(GLuint shaderProgram)
 
     // lookat vector and view matrix
     float d = 10.0 + sin(t);
-    float pt = -t*0.1;
+    float pt = -t;
     vec3 cpos = {sin(pt)*d,cos(0.5*t)*5.0,cos(pt)*d};                        // camera pos
     vec3 tpos = {0.0,0.0,0.0};                                  // target pos
     glm_vec3_sub(cpos,tpos,cdir);                               // look dir (inverted cause opengl noises)
@@ -210,13 +165,6 @@ void updateCameraUniforms(GLuint shaderProgram)
     glm_vec3_sub(camll,fw,camll);
     int camllLocation = glGetUniformLocation(shaderProgram, "_camll");
     glUniform3f(camllLocation, camll[0], camll[1], camll[2]);
-}
-
-
-float time()
-{
-    // ms / 1000.0 = seconds since start
-    return (float)SDL_GetTicks() / 1000.0f; 
 }
 
 int checkQuit()

@@ -5,7 +5,7 @@
     * [-] ray tracing time
         * [x] perspective
         * [x] camera lookat
-        * [ ] do a bounce
+        * [x] do a bounce
         * [ ] do a 'flect
         * [ ] do a 'fract
         * [-] depth

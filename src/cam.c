@@ -1,5 +1,7 @@
 #include "cam.h"
 
+const float FOVY = 90.0;
+
 void updateCameraUniforms(GLuint shaderProgram, float aspect)
 {
     float t = now();
@@ -32,9 +34,8 @@ void updateCameraUniforms(GLuint shaderProgram, float aspect)
     glUniform3fv(loc, 1, cup);
 
     // camera properties
-    float fovy = 90.0;
     float f = 1.0;
-    float theta = glm_rad(fovy);
+    float theta = glm_rad(FOVY);
     float h = tan(theta*0.5);
     float vph = 2.0*h;
     float vpw = aspect*vph;

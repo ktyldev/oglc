@@ -8,9 +8,7 @@
 const int WIDTH = 420;
 const int HEIGHT = 420;
 
-// forward declarations
 void updateUniforms(GLuint shaderProgram);
-//void updateCameraUniforms(GLuint shaderProgram);
 
 int main()
 {
@@ -58,7 +56,6 @@ int main()
 
     return 0;
 }
-
 
 void updateUniforms(GLuint shaderProgram)
 {

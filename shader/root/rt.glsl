@@ -20,6 +20,8 @@ const int SPHERES = 250; // 253 is the maximum?? TODO: use uniform buffer object
 layout (location = 12)  uniform int _activeSpheres;
 layout (location = 13)  uniform Sphere _spheres[SPHERES];
 
+uniform float _seed;
+
 layout(local_size_x = 1, local_size_y = 1) in;                  // size of local work group - 1 pixel
 layout(rgba32f, binding = 0) uniform image2D img_output;        // rgba32f defines internal format, image2d for random write to output texture
 
@@ -30,7 +32,18 @@ struct Ray
 {
     vec3 origin;
     vec3 direction;
+    vec3 energy;
 };
+Ray createRay(vec3 origin, vec3 direction)
+{
+    Ray ray;
+
+    ray.origin = origin;
+    ray.direction = direction;
+    ray.energy = vec3(1.0,1.0,1.0);
+
+    return ray;
+}
 
 struct RayHit
 {
@@ -39,6 +52,17 @@ struct RayHit
     vec3 normal;
     vec3 albedo;
 };
+RayHit createRayHit()
+{
+    RayHit hit;
+
+    hit.position = vec3(0.0,0.0,0.0);
+    hit.distance = INF;
+    hit.normal = vec3(0.0,0.0,0.0);
+    hit.albedo = vec3(0.0,0.0,0.0);
+
+    return hit;
+}
 
 void intersectSphere(Ray ray, inout RayHit bestHit, Sphere sphere)
 {
@@ -75,12 +99,80 @@ Ray createCameraRay(vec2 uv)
     dir = _camll + uv.x*_camh + uv.y*_camv;
     dir = normalize(dir);
 
-    Ray ray;
-    ray.origin = _cpos;
-    ray.direction = dir;
+    Ray ray = createRay(_cpos, dir);
 
     return ray;
 };
+
+RayHit trace(Ray ray)
+{
+    RayHit hit = createRayHit();
+
+    // TODO: intersect something other than spheres
+
+    for (int i = 0; i < _activeSpheres; i++)
+    {
+        intersectSphere(ray, hit, _spheres[i]);
+    }
+
+    return hit;
+}
+
+float random(vec2 st)
+{
+    return fract(sin(dot(st.xy,vec2(12.9898,78.233)))*43758.5453123);
+}
+
+float sdot(vec3 x, vec3 y, float f = 1.0)
+{
+    return clamp(dot(x,y)*f,0.0,1.0);
+}
+
+mat3 getTangentSpace(vec3 normal)
+{
+    vec3 helper = abs(normal.x) > 0.99 
+        ? vec3(1.0,0.0,0.0) 
+        : vec3(0.0,0.0,1.0);
+
+    vec3 tangent = normalize(cross(normal, helper));
+    vec3 binormal = normalize(cross(normal, tangent));
+
+    return mat3(tangent, binormal, normal);
+}
+
+vec3 sampleHemisphere(vec3 normal)
+{
+    float cosTheta = random(normal.xy);
+    float sinTheta = sqrt(max(0.0,1.0-cosTheta*cosTheta));
+    float phi = 2.0*PI*random(vec2(cosTheta,sinTheta));
+    vec3 tangentSpaceDir = vec3(cos(phi)*sinTheta, sin(phi)*sinTheta, cosTheta);
+
+    // TODO: this lookin sketch af rn
+    return tangentSpaceDir * getTangentSpace(normal);
+}
+
+vec3 scatterLambert(inout Ray ray, RayHit hit)
+{
+    ray.origin = hit.position + hit.normal*0.001;
+    ray.direction = sampleHemisphere(hit.normal);
+    ray.energy *= 2.0 * hit.albedo * sdot(hit.normal, ray.direction);
+
+    // TODO: ???
+    return vec3(0.0);
+}
+
+vec3 shade(inout Ray ray, RayHit hit)
+{
+    if (hit.distance < INF)
+    {
+        return scatterLambert(ray, hit);
+    }
+
+    //ray.energy = vec3(0.0);
+
+    // sky color
+    return vec3(0.68,0.85,0.9);
+}
 
 void main()
 {
@@ -89,30 +181,32 @@ void main()
     // get index in global work group ie xy position
     ivec2 pixel_coords = ivec2(gl_GlobalInvocationID.xy);
 
-    // set up ray based on pixel position, project it forward with an orthographic projection
     ivec2 dims = imageSize(img_output);                                         // fetch image dimensions
     vec2 uv;
     uv.x = (float(pixel_coords.x * 2 - dims.x) / dims.x) * dims.x/dims.y;       // account for aspect ratio
     uv.y = (float(pixel_coords.y * 2 - dims.y) / dims.y);
 
-    Ray ray = createCameraRay(uv);
+    int samples = 2;
+    int bounces = 2;
 
-    RayHit hit;
-    hit.position = vec3(0.0,0.0,0.0);
-    hit.distance = INF;
-    hit.normal = vec3(0.0,0.0,0.0);
-    hit.albedo = vec3(0.0,0.0,0.0);
-
-    for (int i = 0; i < _activeSpheres; i++)
+    for (int i = 0; i < samples; i++) 
     {
-        intersectSphere(ray, hit, _spheres[i]);
+        // create a ray from the uv
+        Ray ray = createCameraRay(uv);
+
+        // trace the rays path around the scene
+        for (int j = 0; j < bounces; j++)
+        {
+            RayHit hit = trace(ray);
+
+            pixel.xyz += ray.energy * shade(ray, hit);
+        }
     }
 
     // TODO: write depth to texture
-    float depth = hit.distance/INF;
-
-    pixel = vec4(hit.albedo,1.0);
-    pixel *= (1.0-depth);
+    //float depth = hit.distance/INF;
+    //pixel = vec4(hit.albedo,1.0);
+    //pixel *= (1.0-depth);
 
     // output to a specific pixel in the image
     imageStore(img_output, pixel_coords, pixel);

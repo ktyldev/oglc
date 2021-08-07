@@ -148,7 +148,8 @@ vec3 sampleHemisphere(vec3 normal)
     vec3 tangentSpaceDir = vec3(cos(phi)*sinTheta, sin(phi)*sinTheta, cosTheta);
 
     // TODO: this lookin sketch af rn
-    return tangentSpaceDir * getTangentSpace(normal);
+    mat3 ts = getTangentSpace(normal);
+    return ts* tangentSpaceDir;
 }
 
 vec3 scatterLambert(inout Ray ray, RayHit hit)
@@ -157,7 +158,6 @@ vec3 scatterLambert(inout Ray ray, RayHit hit)
     ray.direction = sampleHemisphere(hit.normal);
     ray.energy *= 2.0 * hit.albedo * sdot(hit.normal, ray.direction);
 
-    // TODO: ???
     return vec3(0.0);
 }
 
@@ -186,7 +186,7 @@ void main()
     uv.x = (float(pixel_coords.x * 2 - dims.x) / dims.x) * dims.x/dims.y;       // account for aspect ratio
     uv.y = (float(pixel_coords.y * 2 - dims.y) / dims.y);
 
-    int samples = 2;
+    int samples = 1;
     int bounces = 2;
 
     for (int i = 0; i < samples; i++) 
@@ -202,6 +202,8 @@ void main()
             pixel.xyz += ray.energy * shade(ray, hit);
         }
     }
+
+    pixel /= samples;
 
     // TODO: write depth to texture
     //float depth = hit.distance/INF;

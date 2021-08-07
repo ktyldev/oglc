@@ -1,10 +1,3 @@
-* [x] basic opengl initialisation
-* [x] shader pre-processor
-    * [x] ppp.py
-    * [x] read root shaders
-    * [x] read include shaders
-    * [x] write processed shaders to bin/res/shader/
-    * [x] compile processed shaders
 * [-] render image with compute shader
     * [x] render a texture to a full-screen quad
     * [x] pass uniforms to shader to animate it
@@ -26,6 +19,7 @@
         * [ ] mandelbrot
         * [ ] julia
         * [ ] trongle
+* [ ] resizable window
 * [ ] output frame to a file
     * [ ] detect input keydown s
     * [ ] get timestamp

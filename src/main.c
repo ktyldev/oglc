@@ -3,13 +3,14 @@
 #include "time.h"
 
 #include "sphere.h"
+#include "cam.h"
 
 const int WIDTH = 420;
 const int HEIGHT = 420;
 
 // forward declarations
 void updateUniforms(GLuint shaderProgram);
-void updateCameraUniforms(GLuint shaderProgram);
+//void updateCameraUniforms(GLuint shaderProgram);
 
 int main()
 {
@@ -66,99 +67,12 @@ void updateUniforms(GLuint shaderProgram)
     int tLocation = glGetUniformLocation(shaderProgram, "_t");
     glUniform4f(tLocation, t, sin_t, (1.0 + sin_t)*0.5, 0.0f);
 
-    updateCameraUniforms(shaderProgram);
+    float aspect = (float)WIDTH/(float)HEIGHT;
+    updateCameraUniforms(shaderProgram, aspect);
 
     const int sphereCount = 42;
     struct Sphere spheres[sphereCount];
     makeSpheres(spheres, sphereCount);
 
     updateSphereUniforms(shaderProgram, spheres, sphereCount);
-}
-
-void updateCameraUniforms(GLuint shaderProgram)
-{
-    // set up perspective projection matrix and its inverse
-    mat4 proj, proji;
-    float fovy = 90.0;                                          // vertical field of view in deg
-    float near = 0.1;
-    float far = 1000.0;
-    float aspect = (float)WIDTH/(float)HEIGHT;
-    glm_perspective(fovy,aspect,near,far,proj);                 // TODO: radians or degrees??
-    glm_mat4_inv(proj, proji);
-    int inverseProjLocation = glGetUniformLocation(shaderProgram, "_cameraInverseProjection");
-    glUniformMatrix4fv(inverseProjLocation, 1, GL_FALSE, proji[0]);
-
-    float t = now();
-
-    vec3 cdir, cright, cup;
-    vec3 up = {0.1*sin(t),1.0,0.2*cos(t)};                                    // world up
-    glm_vec3_normalize(up);
-
-    // lookat vector and view matrix
-    float d = 10.0 + sin(t);
-    float pt = -t;
-    vec3 cpos = {sin(pt)*d,cos(0.5*t)*5.0,cos(pt)*d};                        // camera pos
-    vec3 tpos = {0.0,0.0,0.0};                                  // target pos
-    glm_vec3_sub(cpos,tpos,cdir);                               // look dir (inverted cause opengl noises)
-    glm_vec3_normalize(cdir); 
-    glm_vec3_cross(up,cdir,cright);                             // camera right
-    glm_vec3_normalize(cright);                                 
-    glm_vec3_cross(cdir,cright,cup);                            // camera up
-    glm_vec3_normalize(cup);
-    mat4 view;
-    glm_lookat(cpos,tpos,cup,view);
-    int cposLocation = glGetUniformLocation(shaderProgram, "_cpos");
-    glUniform3f(cposLocation, cpos[0],cpos[1],cpos[2]);
-
-    // form view space axes
-    vec3 w,u,v;
-    glm_vec3_copy(cdir,w);
-
-    glm_vec3_norm(w);
-    glm_vec3_cross(up,w,u);
-    glm_vec3_norm(u);
-    glm_vec3_cross(w, u, v);
-    int wLocation = glGetUniformLocation(shaderProgram, "_w");
-    glUniform3f(wLocation+0, w[0], w[1], w[2]);                 // w
-    glUniform3f(wLocation+1, u[0], u[1], u[2]);                 // u
-    glUniform3f(wLocation+2, v[0], v[1], v[2]);                 // v
-
-
-    // get camera properties
-    float theta = glm_rad(fovy);                                // convert fov to radians
-    float h = tan(theta*0.5);
-    float vph = 2.0*h;                                          // viewport height
-    float vpw = aspect*vph;                                     // viewport width
-
-    // TODO: actual focal length lmao
-    float f = 1.0;
-
-    // camera axes
-    //
-    // use vec3_scale instead of vec3_multiply to get scalar multiplication
-    // https://cglm.readthedocs.io/en/latest/vec3.html#c.glm_vec3_scale
-    vec3 camh={0},
-         camv={0},
-         camll={0},
-         camhh={0},
-         camvh={0},
-         fw={0};
-
-    glm_vec3_scale(u,f*vpw,camh);   
-    int camhLocation = glGetUniformLocation(shaderProgram, "_camh");
-    glUniform3f(camhLocation, camh[0], camh[1], camh[2]);
-    glm_vec3_scale(v,f*vph,camv);
-    int camvLocation = camhLocation+1;
-    glUniform3f(camvLocation, camv[0], camv[1], camv[2]);
-
-    // camera lower left corner
-    // calculate half-axes and w*f to establish 3d position of ll corner in camera space
-    glm_vec3_scale(u,f*vpw*0.5,camhh);
-    glm_vec3_scale(v,f*vph*0.5,camvh);
-    glm_vec3_scale(w,f,fw);
-    glm_vec3_sub(camll,camhh,camll);
-    glm_vec3_sub(camll,camvh,camll);
-    glm_vec3_sub(camll,fw,camll);
-    int camllLocation = glGetUniformLocation(shaderProgram, "_camll");
-    glUniform3f(camllLocation, camll[0], camll[1], camll[2]);
 }

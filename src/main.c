@@ -8,10 +8,6 @@ const int WIDTH = 420;
 const int HEIGHT = 420;
 
 // forward declarations
-
-// input
-int checkQuit();
-
 void updateUniforms(GLuint shaderProgram);
 void updateCameraUniforms(GLuint shaderProgram);
 
@@ -166,13 +162,3 @@ void updateCameraUniforms(GLuint shaderProgram)
     int camllLocation = glGetUniformLocation(shaderProgram, "_camll");
     glUniform3f(camllLocation, camll[0], camll[1], camll[2]);
 }
-
-int checkQuit()
-{
-    SDL_Event event;
-
-    if (SDL_PollEvent(&event) && event.type == SDL_QUIT) return 1;
-
-    return 0;
-}
-

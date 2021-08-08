@@ -26,7 +26,7 @@ void makeSpheres(struct Sphere *spheres, int count)
     {
         x = 2.0*CGLM_PI * (float)i/(float)count;
         sc[0] = sin(x)*d;
-        sc[1] = sin(x*3.0-2.5*sin(t));
+        sc[1] = sin(x*3.0-t);
         sc[2] = cos(x)*d;
 
         float ic = i/(float)count*CGLM_PI*2.0;

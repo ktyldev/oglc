@@ -1,4 +1,4 @@
-#include "time.h"
+#include "clock.h"
 
 float now() 
 { 

@@ -4,6 +4,6 @@
 
 #include <cglm/cam.h>
 
-#include "time.h"
+#include "clock.h"
 
 void updateCameraUniforms(GLuint shaderProgram, float aspect);

@@ -20,12 +20,12 @@ const int SPHERES = 250; // 253 is the maximum?? TODO: use uniform buffer object
 layout (location = 12)  uniform int _activeSpheres;
 layout (location = 13)  uniform Sphere _spheres[SPHERES];
 
-uniform float _seed;
+uniform vec4 _seed;
 
 layout(local_size_x = 1, local_size_y = 1) in;                  // size of local work group - 1 pixel
 layout(rgba32f, binding = 0) uniform image2D img_output;        // rgba32f defines internal format, image2d for random write to output texture
 
-const float INF = 30.0;
+const float INF = 1000.0;
 const float PI = 3.14159;
 
 struct Ray 
@@ -80,9 +80,27 @@ void intersectSphere(Ray ray, inout RayHit bestHit, Sphere sphere)
     if (t > 0 && t < bestHit.distance)
     {
         bestHit.distance = t;
-        bestHit.position = ray.origin + t*ray.direction;
+        bestHit.position = ray.origin + t * ray.direction;
         bestHit.normal = normalize(bestHit.position-c);
         bestHit.albedo = sphere.albedo;
+    }
+}
+
+void intersectPlane(Ray ray, inout RayHit bestHit, vec3 p, vec3 normal)
+{
+    //normal = vec3(0.0,0.0,1.0);
+    float denom = dot(normal, ray.direction);
+
+    if (abs(denom) > 0.0001)
+    {
+        float t = dot(p-ray.origin, normal) / denom;
+        if (t >= 0 && t < bestHit.distance)
+        {
+            bestHit.distance = t;
+            bestHit.position = ray.origin + t*ray.direction;
+            bestHit.normal = normal;
+            bestHit.albedo = vec3(1.0,1.0,1.0);
+        }
     }
 }
 
@@ -110,16 +128,29 @@ RayHit trace(Ray ray)
 
     // TODO: intersect something other than spheres
 
+    Sphere s;
+    s.cr = vec4(0.0,0.0,0.0,2.0);
+    s.albedo = vec3(1.0,0.0,0.0);
+
+    intersectPlane(ray, hit, vec3(0.0,-1.5,0.0),vec3(0.0,1.0,0.0));
+
     for (int i = 0; i < _activeSpheres; i++)
     {
         intersectSphere(ray, hit, _spheres[i]);
     }
+
+    //intersectSphere(ray, hit, s);
 
     return hit;
 }
 
 float random(vec2 st)
 {
+    st += gl_GlobalInvocationID.xy;
+    st += _seed.xy;
+    st += _seed.zw;
+    normalize(st);
+
     return fract(sin(dot(st.xy,vec2(12.9898,78.233)))*43758.5453123);
 }
 
@@ -144,10 +175,11 @@ vec3 sampleHemisphere(vec3 normal)
 {
     float cosTheta = random(normal.xy);
     float sinTheta = sqrt(max(0.0,1.0-cosTheta*cosTheta));
-    float phi = 2.0*PI*random(vec2(cosTheta,sinTheta));
+
+    float phi = 2.0*PI*random(normal.yx);
     vec3 tangentSpaceDir = vec3(cos(phi)*sinTheta, sin(phi)*sinTheta, cosTheta);
 
-    // TODO: this lookin sketch af rn
+    // convert direction from tangent space to world space
     mat3 ts = getTangentSpace(normal);
     return ts* tangentSpaceDir;
 }
@@ -186,8 +218,8 @@ void main()
     uv.x = (float(pixel_coords.x * 2 - dims.x) / dims.x) * dims.x/dims.y;       // account for aspect ratio
     uv.y = (float(pixel_coords.y * 2 - dims.y) / dims.y);
 
-    int samples = 1;
-    int bounces = 2;
+    int samples = 2;
+    int bounces = 3;
 
     for (int i = 0; i < samples; i++) 
     {
@@ -200,10 +232,12 @@ void main()
             RayHit hit = trace(ray);
 
             pixel.xyz += ray.energy * shade(ray, hit);
+
+            if (length(ray.energy) < 0.001) break;
         }
     }
 
-    pixel /= samples;
+    pixel.xyz /= samples;
 
     // TODO: write depth to texture
     //float depth = hit.distance/INF;

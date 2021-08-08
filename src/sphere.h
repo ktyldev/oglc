@@ -7,7 +7,7 @@
 
 #include <cglm/vec3.h>
 
-#include "time.h"
+#include "clock.h"
 
 struct Sphere
 {

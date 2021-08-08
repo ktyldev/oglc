@@ -1,6 +1,7 @@
 #include "main.h"
 #include "gfx.h"
-#include "time.h"
+#include "clock.h"
+#include "random.h"
 
 #include "sphere.h"
 #include "cam.h"
@@ -59,6 +60,17 @@ int main()
 
 void updateUniforms(GLuint shaderProgram)
 {
+    // update random values
+    vec4 seed = 
+    {
+        randomFloat(),
+        randomFloat(),
+        randomFloat(),
+        randomFloat()
+    };
+    int loc = glGetUniformLocation(shaderProgram, "_seed");
+    glUniform4fv(loc, 1, seed);
+
     float t = now();
     float sin_t = sin(t);
     int tLocation = glGetUniformLocation(shaderProgram, "_t");

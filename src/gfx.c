@@ -1,4 +1,5 @@
 #include "gfx.h"
+#include "random.h"
 #include "stb_image.h"
 
 float vertices[] = {
@@ -57,6 +58,10 @@ SDL_Window* gfxInit(int width, int height)
     int uniformLocations;
     glGetIntegerv(GL_MAX_UNIFORM_LOCATIONS, &uniformLocations);
     printf("max uniform locations %d\n", uniformLocations);
+
+    int imageUnits;
+    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &imageUnits);
+    printf("max texture image units %d\n", imageUnits);
 
     return sdlWindow;
 }
@@ -189,6 +194,38 @@ void createTextureFromFile(const char* imagePath)
     glGenerateMipmap(GL_TEXTURE_2D);
 
     stbi_image_free(data);
+}
+
+// creates a noise texture in active texture 1
+GLuint createNoiseTexture(int width, int height)
+{
+    // same init steps as with a regular texture
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_REPEAT);
+
+    int channels = 4; // rgba
+    int length = width*height*channels;
+    printf("generating %d random floats\n", length);
+
+    float data[width*height*channels];
+
+    for (int i = 0; i < length; i++)
+    {
+        data[i] = randomFloat();
+    }
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, data);
+    glBindImageTexture(0, texture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    return texture;
 }
 
 GLuint createWriteOnlyTexture(int width, int height)

@@ -13,8 +13,13 @@ void updateUniforms(GLuint shaderProgram);
 
 int main()
 {
+    randomInit();
+
     // create a window and opengl context
     SDL_Window* window = gfxInit(WIDTH, HEIGHT);
+
+    // generate noise
+    GLuint noise = createNoiseTexture(WIDTH, HEIGHT);
 
     // create a texture for the compute shader to write to
     GLuint textureOutput = createWriteOnlyTexture(WIDTH, HEIGHT);
@@ -27,18 +32,21 @@ int main()
             "bin/shader.vert", 
             "bin/shader.frag");
 
+    glBindTexture(GL_TEXTURE_2D, noise);
+    int noiseLoc = glGetUniformLocation(computeProgram, "_noise");
+    glUniform1i(noiseLoc, noise);
+
     // initialise quad
     initBuffers();
     setVertexAttributes();
 
+    int frames = 0;
     // render loop
     while (!checkQuit())
     {
-        glUseProgram(computeProgram);
-
-        updateUniforms(computeProgram);
-
         // dispatch compute shader
+        glUseProgram(computeProgram);
+        updateUniforms(computeProgram);
         glDispatchCompute((GLuint)WIDTH, (GLuint)HEIGHT, 1);
 
         // make sure we're finished writing to the texture before trying to read it
@@ -46,14 +54,22 @@ int main()
 
         // normal drawing pass
         glUseProgram(quadProgram);
-        glActiveTexture(GL_TEXTURE0);                                           // use computed texture
-        glBindTexture(GL_TEXTURE_2D, textureOutput);
 
+        // bind texture written to by compute stage to 2d target
+        glBindTexture(GL_TEXTURE_2D, textureOutput);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         // swip swap
         SDL_GL_SwapWindow(window);
+
+        frames++;
     }
+
+    float elapsed = now();
+    printf("%d frames in %f seconds (avg: %f fps)\n", 
+            frames, 
+            elapsed, 
+            (float)frames/elapsed);
 
     return 0;
 }

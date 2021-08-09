@@ -2,6 +2,8 @@
 
 #include sphere.glsl
 
+layout(local_size_x = 1, local_size_y = 1) in;                  // size of local work group - 1 pixel
+
 // TODO: do i actually need explicit location descriptors?
 layout (location = 1)   uniform vec4 _t;
 
@@ -16,14 +18,17 @@ layout (location = 8)   uniform vec3 _camll;
 layout (location = 9)   uniform vec3 _cpos;
 layout (location = 10)  uniform vec3 _tpos;                     // target
 
-const int SPHERES = 250; // 253 is the maximum?? TODO: use uniform buffer objects
+// 253 is the maximum?? TODO: use uniform buffer objects
+const int SPHERES = 250; 
+
 layout (location = 12)  uniform int _activeSpheres;
 layout (location = 13)  uniform Sphere _spheres[SPHERES];
 
 uniform vec4 _seed;
 
-layout(local_size_x = 1, local_size_y = 1) in;                  // size of local work group - 1 pixel
+
 layout(rgba32f, binding = 0) uniform image2D img_output;        // rgba32f defines internal format, image2d for random write to output texture
+layout(binding=1) uniform sampler2D _noise;                     // noise texture
 
 const float INF = 1000.0;
 const float PI = 3.14159;
@@ -144,14 +149,34 @@ RayHit trace(Ray ray)
     return hit;
 }
 
+vec2 pixelUv() 
+{
+    ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
+
+    ivec2 dims = imageSize(img_output);
+
+    vec2 uv;
+    uv.x = (float(pixelCoords.x * 2 - dims.x) / dims.x) * dims.x/dims.y;       // account for aspect ratio
+    uv.y = (float(pixelCoords.y * 2 - dims.y) / dims.y);
+
+    return uv;
+}
+
+vec4 sampleNoise()
+{
+    return texture(_noise, pixelUv());
+}
+
 float random(vec2 st)
 {
-    st += gl_GlobalInvocationID.xy;
-    st += _seed.xy;
-    st += _seed.zw;
-    normalize(st);
+    //st += gl_GlobalInvocationID.xy;
+    //st += _seed.xy;
+    //st += _seed.zw;
+    //normalize(st);
 
-    return fract(sin(dot(st.xy,vec2(12.9898,78.233)))*43758.5453123);
+    vec2 nuv = texture(_noise, st.xy).xy;
+
+    return fract(sin(dot(nuv,vec2(12.9898,78.233)))*43758.5453123);
 }
 
 float sdot(vec3 x, vec3 y, float f = 1.0)
@@ -173,15 +198,17 @@ mat3 getTangentSpace(vec3 normal)
 
 vec3 sampleHemisphere(vec3 normal)
 {
-    float cosTheta = random(normal.xy);
+    vec4 noise = sampleNoise();
+
+    float cosTheta = random(normalize(normal.xy+noise.xy));
     float sinTheta = sqrt(max(0.0,1.0-cosTheta*cosTheta));
 
-    float phi = 2.0*PI*random(normal.yx);
+    float phi = 2.0*PI*random(normalize(normal.yz+noise.xw));
     vec3 tangentSpaceDir = vec3(cos(phi)*sinTheta, sin(phi)*sinTheta, cosTheta);
 
     // convert direction from tangent space to world space
     mat3 ts = getTangentSpace(normal);
-    return ts* tangentSpaceDir;
+    return ts * tangentSpaceDir;
 }
 
 vec3 scatterLambert(inout Ray ray, RayHit hit)
@@ -213,13 +240,10 @@ void main()
     // get index in global work group ie xy position
     ivec2 pixel_coords = ivec2(gl_GlobalInvocationID.xy);
 
-    ivec2 dims = imageSize(img_output);                                         // fetch image dimensions
-    vec2 uv;
-    uv.x = (float(pixel_coords.x * 2 - dims.x) / dims.x) * dims.x/dims.y;       // account for aspect ratio
-    uv.y = (float(pixel_coords.y * 2 - dims.y) / dims.y);
+    vec2 uv = pixelUv();
 
     int samples = 2;
-    int bounces = 3;
+    int bounces = 2;
 
     for (int i = 0; i < samples; i++) 
     {
@@ -243,6 +267,8 @@ void main()
     //float depth = hit.distance/INF;
     //pixel = vec4(hit.albedo,1.0);
     //pixel *= (1.0-depth);
+
+    //pixel = texture(_noise, uv);
 
     // output to a specific pixel in the image
     imageStore(img_output, pixel_coords, pixel);

@@ -15,7 +15,6 @@ unsigned int compileQuadShaderProgram(const char* vsPath, const char* fsPath);
 unsigned int compileComputeShaderProgram();
 
 GLuint createNoiseTexture(int width, int height);
-void createTextureFromFile(const char* path);
 GLuint createWriteOnlyTexture(int width, int height);
 void printWorkGroupLimits();
 

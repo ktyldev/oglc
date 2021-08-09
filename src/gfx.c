@@ -1,6 +1,5 @@
 #include "gfx.h"
 #include "random.h"
-#include "stb_image.h"
 
 float vertices[] = {
     // position             color               uvs
@@ -166,39 +165,10 @@ void setVertexAttributes()
     glEnableVertexAttribArray(2);
 }
 
-void createTextureFromFile(const char* imagePath)
-{
-    // create an opengl texture and bind it to the GL_TEXTURE_2D target
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_REPEAT);
-
-    // load image data from file
-    int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(1);
-    unsigned char* data = stbi_load(imagePath, &width, &height, &nrChannels, 0);
-    if (!data)
-    {
-        fputs("failed to load texture data: ", stderr);
-        fputs(imagePath, stderr);
-        fputs("\n", stderr);
-        exit(1);
-    }
-
-    // read image data into bound opengl texture
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    stbi_image_free(data);
-}
-
 // creates a noise texture in active texture 1
 GLuint createNoiseTexture(int width, int height)
 {
+
     // same init steps as with a regular texture
     GLuint texture;
     glGenTextures(1, &texture);

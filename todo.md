@@ -1,3 +1,6 @@
+* [-] preprocessor
+    * [x] #include directives
+    * [ ] keep track of previously included files to avoid redefinitions
 * [-] render image with compute shader
     * [x] render a texture to a full-screen quad
     * [x] pass uniforms to shader to animate it

@@ -26,7 +26,6 @@ layout (location = 13)  uniform Sphere _spheres[SPHERES];
 
 uniform vec4 _seed;
 
-
 layout(rgba32f, binding = 0) uniform image2D img_output;        // rgba32f defines internal format, image2d for random write to output texture
 layout(binding=1) uniform sampler2D _noise;                     // noise texture
 
@@ -164,7 +163,10 @@ vec2 pixelUv()
 
 vec4 sampleNoise()
 {
-    return texture(_noise, pixelUv());
+    vec2 uv = pixelUv();
+    uv += _seed.xy;
+
+    return texture(_noise, uv);
 }
 
 float random(vec2 st)
@@ -242,8 +244,8 @@ void main()
 
     vec2 uv = pixelUv();
 
-    int samples = 2;
-    int bounces = 2;
+    int samples = 1;
+    int bounces = 4;
 
     for (int i = 0; i < samples; i++) 
     {

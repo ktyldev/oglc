@@ -13,17 +13,15 @@ void updateUniforms(GLuint shaderProgram);
 
 int main()
 {
+    printf("GL_TEXTURE0: %d\n", GL_TEXTURE0);
+    printf("GL_TEXTURE1: %d\n", GL_TEXTURE1);
+
     randomInit();
 
     // create a window and opengl context
     SDL_Window* window = gfxInit(WIDTH, HEIGHT);
 
-    // generate noise
-    GLuint noise = createNoiseTexture(WIDTH, HEIGHT);
 
-    // create a texture for the compute shader to write to
-    GLuint textureOutput = createWriteOnlyTexture(WIDTH, HEIGHT);
-    printWorkGroupLimits();
 
     // compile shader programs
     unsigned int computeProgram = compileComputeShaderProgram(
@@ -32,9 +30,15 @@ int main()
             "bin/shader.vert", 
             "bin/shader.frag");
 
+    // generate noise
+    GLuint noise = createNoiseTexture(WIDTH, HEIGHT);
     glBindTexture(GL_TEXTURE_2D, noise);
     int noiseLoc = glGetUniformLocation(computeProgram, "_noise");
     glUniform1i(noiseLoc, noise);
+
+    // create a texture for the compute shader to write to
+    GLuint textureOutput = createWriteOnlyTexture(WIDTH, HEIGHT);
+    printWorkGroupLimits();
 
     // initialise quad
     initBuffers();

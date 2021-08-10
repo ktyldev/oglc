@@ -11,6 +11,12 @@ const int HEIGHT = 420;
 
 void updateUniforms(GLuint shaderProgram);
 
+struct TextureIDs
+{
+    GLuint output;  // the texture that ultimately gets rendered
+    GLuint noise;
+} textureIds;
+
 int main()
 {
     printf("GL_TEXTURE0: %d\n", GL_TEXTURE0);
@@ -21,8 +27,6 @@ int main()
     // create a window and opengl context
     SDL_Window* window = gfxInit(WIDTH, HEIGHT);
 
-
-
     // compile shader programs
     unsigned int computeProgram = compileComputeShaderProgram(
             "bin/rt.compute");
@@ -31,13 +35,13 @@ int main()
             "bin/shader.frag");
 
     // generate noise
-    GLuint noise = createNoiseTexture(WIDTH, HEIGHT);
-    glBindTexture(GL_TEXTURE_2D, noise);
+    textureIds.noise = createNoiseTexture(WIDTH, HEIGHT);
+    glBindTexture(GL_TEXTURE_2D,textureIds.noise);
     int noiseLoc = glGetUniformLocation(computeProgram, "_noise");
-    glUniform1i(noiseLoc, noise);
+    glUniform1i(noiseLoc, textureIds.noise);
 
     // create a texture for the compute shader to write to
-    GLuint textureOutput = createWriteOnlyTexture(WIDTH, HEIGHT);
+    textureIds.output = createWriteOnlyTexture(WIDTH, HEIGHT);
     printWorkGroupLimits();
 
     // initialise quad
@@ -60,7 +64,7 @@ int main()
         glUseProgram(quadProgram);
 
         // bind texture written to by compute stage to 2d target
-        glBindTexture(GL_TEXTURE_2D, textureOutput);
+        glBindTexture(GL_TEXTURE_2D, textureIds.output);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         // swip swap
@@ -91,17 +95,19 @@ void updateUniforms(GLuint shaderProgram)
     int loc = glGetUniformLocation(shaderProgram, "_seed");
     glUniform4fv(loc, 1, seed);
 
+    // update time
     float t = now();
     float sin_t = sin(t);
-    int tLocation = glGetUniformLocation(shaderProgram, "_t");
-    glUniform4f(tLocation, t, sin_t, (1.0 + sin_t)*0.5, 0.0f);
+    loc = glGetUniformLocation(shaderProgram, "_t");
+    glUniform4f(loc, t, sin_t, (1.0 + sin_t)*0.5, 0.0f);
 
+    // update camera
     float aspect = (float)WIDTH/(float)HEIGHT;
     updateCameraUniforms(shaderProgram, aspect);
 
+    // make and update spheres
     const int sphereCount = 42;
     struct Sphere spheres[sphereCount];
     makeSpheres(spheres, sphereCount);
-
     updateSphereUniforms(shaderProgram, spheres, sphereCount);
 }

@@ -12,7 +12,11 @@ mat3 getTangentSpace(vec3 normal)
 
 vec3 sampleHemisphere(vec3 normal)
 {
-    vec2 uv = pixelUv();
+    // TODO: make independent of this image uniform 
+    ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 dims = imageSize(img_output);
+
+    vec2 uv = pixelUv(pixelCoords, dims);
     uv += _seed.xy;
 
     vec4 noise = sampleNoise(uv);;

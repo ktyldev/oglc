@@ -14,10 +14,7 @@ unsigned int indices[] = {
     1, 2, 3
 };
 
-SDL_Window* sdlWindow;
 SDL_GLContext* sdlContext;
-
-GLuint compileShader(const char* path, GLenum type);
 
 SDL_Window* gfxInit(int width, int height)
 {
@@ -33,7 +30,7 @@ SDL_Window* gfxInit(int width, int height)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-    sdlWindow = SDL_CreateWindow(
+    SDL_Window *sdlWindow = SDL_CreateWindow(
             "oglc",
             SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED,
@@ -62,19 +59,36 @@ SDL_Window* gfxInit(int width, int height)
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &imageUnits);
     printf("max texture image units %d\n", imageUnits);
 
+    printWorkGroupLimits();
+
     return sdlWindow;
 }
 
-unsigned int compileQuadShaderProgram(const char* vsPath, const char* fsPath)
+int compileShaders(struct Shaders *shaders)
+{
+    // everything is renderered onto the surface of one quad
+    shaders->quad = compileQuadShaderProgram("bin/shader.vert", "bin/shader.frag");
+
+    // preprass writes first-pass information into buffers for later acceleration 
+    shaders->prepass = compileComputeShaderProgram("bin/rtpre.compute");
+
+    // lighting traces multiple bounces of light around the scene 
+    shaders->lighting = compileComputeShaderProgram("bin/rt.compute");
+
+    // TODO: actually make sure all the shaders compile
+    return 0;
+}
+
+GLuint compileQuadShaderProgram(const char* vsPath, const char* fsPath)
 {
     GLuint vs = compileShader(vsPath, GL_VERTEX_SHADER);
     GLuint fs = compileShader(fsPath, GL_FRAGMENT_SHADER);
 
-    unsigned int shaderProgram = glCreateProgram();
+    GLuint shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vs);
     glAttachShader(shaderProgram, fs);
 
-    // TODO: check program linking success
+    // TODO: check program linking success textur
     glLinkProgram(shaderProgram);
 
     GLint result = GL_FALSE;
@@ -99,7 +113,7 @@ unsigned int compileQuadShaderProgram(const char* vsPath, const char* fsPath)
     return shaderProgram;
 }
 
-unsigned int compileComputeShaderProgram(const char* computeShaderPath)
+GLuint compileComputeShaderProgram(const char* computeShaderPath)
 {
     GLuint cs = compileShader(computeShaderPath, GL_COMPUTE_SHADER);
     GLuint computeProgram = glCreateProgram(); 
@@ -160,15 +174,40 @@ void setVertexAttributes()
     // color
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3*sizeof(float)));
     glEnableVertexAttribArray(1);
+
+
+
+
+
+
+
+
+
+
     // uv 
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6*sizeof(float)));
     glEnableVertexAttribArray(2);
 }
 
+int createTextures(int width, int height, struct Shaders shaders, struct Textures* textures)
+{
+    // generate noise
+    textures->noise = createNoiseTexture(width, height);
+    glBindTexture(GL_TEXTURE_2D,textures->noise);
+    int loc = glGetUniformLocation(shaders.lighting, "_noise");
+    glUniform1i(loc, textures->noise);
+
+    // create a texture for the compute shader to write to
+    textures->target = createWriteOnlyTexture(width, height);
+
+    textures->g0 = createTexture(width, height);
+
+    return 0;
+}
+
 // creates a noise texture in active texture 1
 GLuint createNoiseTexture(int width, int height)
 {
-
     // same init steps as with a regular texture
     GLuint texture;
     glGenTextures(1, &texture);
@@ -216,9 +255,27 @@ GLuint createWriteOnlyTexture(int width, int height)
     return texture;
 }
 
+// creates an empty texture in GL_TEXTURE2 unit
+GLuint createTexture(int width, int height)
+{
+    GLuint texture;
+    glGenTextures(1, &texture);
+    //glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    // an empty image
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+    glBindImageTexture(2, texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+
+    return texture;
+}
+
 void initBuffers()
 {
-    unsigned int VAO, VBO, EBO;
+    GLuint VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO); // vertex array object
     glGenBuffers(1, &VBO);      // vertex buffer object
     glGenBuffers(1, &EBO);      // element buffer object

@@ -36,6 +36,7 @@ int main()
 {
     initialise();
 
+    float start = now();
     int frames;
     for (frames = 0; !checkQuit(); frames++)
     {
@@ -77,8 +78,8 @@ int main()
         SDL_GL_SwapWindow(window);
     }
 
-    float elapsed = now();
-    printf("%d frames in %f seconds (avg: %f fps)\n", 
+    float elapsed = now()-start;
+    printf("%d frames in %fs [%f fps]\n", 
             frames, 
             elapsed, 
             (float)frames/elapsed);

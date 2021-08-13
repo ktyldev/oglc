@@ -25,13 +25,19 @@ struct Textures
     // noise texture to help with randomness
     GLuint noise;
 
+    // TODO: replace these with an actual array!
     // additional view space information
     //
-    // x    depth
-    // y    -
-    // z    -
-    // w    -
+    // x    surface normal x
+    // y    surface normal y
+    // z    surface normal z
+    // w    depth
     GLuint g0;  
+    // x    albedo x
+    // y    albedo y
+    // z    albedo z
+    // w    -
+    GLuint g1;
 };
 
 SDL_Window* gfxInit(int width, int height);
@@ -42,7 +48,7 @@ GLuint compileComputeShaderProgram(const char* csPath);
 
 int createTextures(int width, int height, struct Shaders shaders, struct Textures* textures);
 GLuint createNoiseTexture(int width, int height);
-GLuint createTexture(int width, int height);
+GLuint createTextureUnit(int width, int height, int unit);
 GLuint createWriteOnlyTexture(int width, int height);
 GLuint compileShader(const char* path, GLenum type);
 

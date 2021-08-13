@@ -200,7 +200,8 @@ int createTextures(int width, int height, struct Shaders shaders, struct Texture
     // create a texture for the compute shader to write to
     textures->target = createWriteOnlyTexture(width, height);
 
-    textures->g0 = createTexture(width, height);
+    textures->g0 = createTextureUnit(width, height, 2);
+    textures->g1 = createTextureUnit(width, height, 3);
 
     return 0;
 }
@@ -256,11 +257,10 @@ GLuint createWriteOnlyTexture(int width, int height)
 }
 
 // creates an empty texture in GL_TEXTURE2 unit
-GLuint createTexture(int width, int height)
+GLuint createTextureUnit(int width, int height, int unit)
 {
     GLuint texture;
     glGenTextures(1, &texture);
-    //glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -268,7 +268,7 @@ GLuint createTexture(int width, int height)
 
     // an empty image
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
-    glBindImageTexture(2, texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+    glBindImageTexture(unit, texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
     return texture;
 }

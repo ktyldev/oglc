@@ -4,9 +4,12 @@ layout(local_size_x = 1, local_size_y = 1) in;                  // size of local
 
 // gbuffer?
 layout(rgba32f, binding = 2) readonly uniform image2D _g0;
+layout(rgba32f, binding = 3) readonly uniform image2D _g1;
 
 // final output
 layout(rgba32f, binding = 0) uniform image2D img_output;        // rgba32f defines internal format, image2d for random write to output texture
+
+uniform vec3 _skyColor = vec3(0.68,0.85,0.9);
 
 // TODO: some of these depend on each other!! need be be in this order for now c:
 #include func.glsl
@@ -30,7 +33,7 @@ vec3 shade(inout Ray ray, RayHit hit)
     }
 
     // sky color
-    return vec3(0.68,0.85,0.9);
+    return _skyColor;
 }
 
 void main()
@@ -43,10 +46,15 @@ void main()
 
     vec2 uv = pixelUv(pixelCoords, dims);
 
+    vec4 g[2];
+
     // load data from first pass
-    vec4 d = imageLoad(_g0, ivec2(gl_GlobalInvocationID.xy));
-    float depth = d.w;
-    vec3 normal = d.xyz*2.0-1.0; // unpack normal packaged into texture
+    g[0] = imageLoad(_g0, ivec2(gl_GlobalInvocationID.xy));
+    float depth = g[0].w;
+    vec3 normal = g[0].xyz*2.0-1.0; // unpack normal packaged into texture
+
+    g[1] = imageLoad(_g1, ivec2(gl_GlobalInvocationID.xy));
+    vec3 albedo = g[1].xyz;
 
     // create a ray from the uv
     Ray ray = createCameraRay(uv);
@@ -54,13 +62,14 @@ void main()
     firstHit.position = ray.origin+ray.direction*depth;
     firstHit.distance = depth;
     firstHit.normal = normal;
-    firstHit.albedo = vec3(1.0,1.0,1.0);
+    firstHit.albedo = albedo;
 
-    // do a trace using precomputed depth and surface normal values
-    //RayHit hit = trace(ray);
+    int sky = depth >= INF ? 1 : 0;
+    int bounces = (1-sky) * BOUNCES; 
+    pixel.xyz = mix(pixel.xyz, _skyColor, sky);
 
     // trace the rays path around the scene
-    for (int j = 1; j < BOUNCES; j++)
+    for (int j = 0; j < bounces; j++)
     {
         RayHit hit = trace(ray);
 
@@ -69,9 +78,10 @@ void main()
         if (length(ray.energy) < 0.001) break;
     }
 
-
     //pixel.xyz = mix(pixel.xyz, normal, 1.0-depth);
     pixel.xyz = mix(pixel.xyz, vec3(1.0), depth);
+
+    //pixel.xyz = mix(firstHit.albedo, pixel.xyz, depth);
 
     //pixel.a = 1.0;
 

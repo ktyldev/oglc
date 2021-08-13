@@ -35,7 +35,7 @@ void main()
 
     // n roughly correlates to steepness of log curve
     // TODO: what does this mean in mathematical terms??
-    float n = 3;
+    float n = 1.0;
     float f = INF;
     float z = hit.distance;
     

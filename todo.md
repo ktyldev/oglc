@@ -14,10 +14,10 @@
         * [ ] do a 'fract
         * [-] depth
             * [x] acquire value
-        * [ ] acquire randomness
-        * [ ] acceleration time ! 
-            * [ ] auxiliary textures
-                * [ ] depth buffer
+        * [x] acquire randomness
+        * [-] acceleration time ! 
+            * [-] auxiliary textures
+                * [x] depth buffer
                 * [ ] frame blending
     * [ ] maybe do some fractals
         * [ ] mandelbrot

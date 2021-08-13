@@ -43,26 +43,32 @@ void main()
 
     vec2 uv = pixelUv(pixelCoords, dims);
 
-    for (int i = 0; i < SAMPLES; i++) 
-    {
-        // create a ray from the uv
-        Ray ray = createCameraRay(uv);
-
-        // trace the rays path around the scene
-        for (int j = 0; j < BOUNCES; j++)
-        {
-            RayHit hit = trace(ray);
-
-            pixel.xyz += ray.energy * shade(ray, hit);
-
-            if (length(ray.energy) < 0.001) break;
-        }
-    }
-    pixel.xyz /= SAMPLES;
-
+    // load data from first pass
     vec4 d = imageLoad(_g0, ivec2(gl_GlobalInvocationID.xy));
     float depth = d.w;
     vec3 normal = d.xyz*2.0-1.0; // unpack normal packaged into texture
+
+    // create a ray from the uv
+    Ray ray = createCameraRay(uv);
+    RayHit firstHit;
+    firstHit.position = ray.origin+ray.direction*depth;
+    firstHit.distance = depth;
+    firstHit.normal = normal;
+    firstHit.albedo = vec3(1.0,1.0,1.0);
+
+    // do a trace using precomputed depth and surface normal values
+    //RayHit hit = trace(ray);
+
+    // trace the rays path around the scene
+    for (int j = 1; j < BOUNCES; j++)
+    {
+        RayHit hit = trace(ray);
+
+        pixel.xyz += ray.energy * shade(ray, hit);
+
+        if (length(ray.energy) < 0.001) break;
+    }
+
 
     //pixel.xyz = mix(pixel.xyz, normal, 1.0-depth);
     pixel.xyz = mix(pixel.xyz, vec3(1.0), depth);

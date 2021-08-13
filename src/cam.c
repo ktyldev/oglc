@@ -8,7 +8,7 @@ void updateCameraUniforms(GLuint shaderProgram, float aspect)
 
     // wobble up dir
     vec3 cdir, cright, cup;
-    vec3 up = {0.1*sin(t),1.0,0.2*cos(t)};
+    vec3 up = {0.1*sin(t),1.0,0.05*cos(0.5*t)};
     glm_vec3_normalize(up);
 
     // camera and target pos

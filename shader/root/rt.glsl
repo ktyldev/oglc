@@ -61,9 +61,11 @@ void main()
     pixel.xyz /= SAMPLES;
 
     vec4 d = imageLoad(_g0, ivec2(gl_GlobalInvocationID.xy));
-    float depth = d.x;
+    float depth = d.w;
+    vec3 normal = d.xyz*2.0-1.0; // unpack normal packaged into texture
 
-    pixel.xyz = mix(pixel.xyz, vec3(0), depth);
+    //pixel.xyz = mix(pixel.xyz, normal, 1.0-depth);
+    pixel.xyz = mix(pixel.xyz, vec3(1.0), depth);
 
     //pixel.a = 1.0;
 

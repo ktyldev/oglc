@@ -33,16 +33,22 @@ void main()
     Ray ray = createCameraRay(uv);
     RayHit hit = trace(ray);
 
-    //pixel.xyz = hit.normal;
-
-    // TODO: non-linear depth
-    float n = 1;
+    // n roughly correlates to steepness of log curve
+    // TODO: what does this mean in mathematical terms??
+    float n = 3;
     float f = INF;
     float z = hit.distance;
+    
+    float depth;
+    // linear depth
+    //depth = z/f;
 
-    float depth = (1.0/z-1.0/n)/(1.0/n-1.0/f);
+    // logarithmic depth
+    depth = log(z*pow(E,n)/f)/n;
 
-    pixel.x = z/f;
+    // pack normal into texture
+    pixel.xyz = hit.normal*0.5+0.5;
+    pixel.w = depth;
 
     imageStore(g0_output, pixelCoords, pixel);
 }

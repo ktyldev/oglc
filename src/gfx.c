@@ -214,7 +214,7 @@ GLuint createNoiseTexture(int width, int height)
     int length = width*height*channels;
     printf("generating %d random floats\n", length);
 
-    float data[width*height*channels];
+    float* data = (float*)malloc(length*sizeof(float));
 
     for (int i = 0; i < length; i++)
     {
@@ -224,6 +224,8 @@ GLuint createNoiseTexture(int width, int height)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, data);
     glBindImageTexture(0, texture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
     glGenerateMipmap(GL_TEXTURE_2D);
+
+    free(data);
 
     return texture;
 }

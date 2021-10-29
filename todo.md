@@ -7,18 +7,21 @@
     * [x] pass uniforms to shader to animate it
     * [x] pass structed uniform buffers
     * [-] ray tracing time
-        * [x] perspective
-        * [x] camera lookat
-        * [x] do a bounce
-        * [ ] do a 'flect
-        * [ ] do a 'fract
-        * [-] depth
-            * [x] acquire value
-        * [x] acquire randomness
+        * [-] light
+            * [x] perspective
+            * [x] camera lookat
+            * [x] do a bounce
+            * [ ] do a 'flect
+            * [ ] do a 'fract
+            * [ ] depth of field
+            * [ ] emission
+            * [ ] wavelength-based instead of rgb?
         * [-] acceleration time ! 
+            * [x] acquire randomness
             * [-] auxiliary textures
                 * [x] depth buffer
                 * [ ] frame blending
+                    * [ ] use pixel object tags to determine balance between trace 
     * [ ] maybe do some fractals
         * [ ] mandelbrot
         * [ ] julia

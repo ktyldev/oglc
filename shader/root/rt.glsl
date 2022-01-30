@@ -29,7 +29,16 @@ vec3 shade(inout Ray ray, RayHit hit)
 {
     if (hit.distance < INF)
     {
-        return scatterLambert(ray, hit);
+        switch (hit.material)
+        {
+        case MAT_SKY: break;
+        case MAT_LAMBERT: 
+            scatterLambert(ray, hit);
+            break;
+        case MAT_CHROME: 
+            return scatterMetal(ray, hit);
+            break;
+        }
     }
 
     // sky color
@@ -78,14 +87,7 @@ void main()
         if (length(ray.energy) < 0.001) break;
     }
 
-    //pixel.xyz = mix(pixel.xyz, normal, 1.0-depth);
     pixel.xyz = mix(pixel.xyz, vec3(1.0), depth);
-
-    //pixel.xyz = mix(firstHit.albedo, pixel.xyz, depth);
-
-    //pixel.a = 1.0;
-
-    //pixel.xyz = texture(_g0, uv).xyz;
 
     // output to a specific pixel in the image
     imageStore(img_output, ivec2(gl_GlobalInvocationID.xy), pixel);

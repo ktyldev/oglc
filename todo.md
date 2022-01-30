@@ -11,7 +11,8 @@
             * [x] perspective
             * [x] camera lookat
             * [x] do a bounce
-            * [ ] do a 'flect
+            * [x] do a 'flect
+            * [ ] properly sample depth for reflective surfaces
             * [ ] do a 'fract
             * [ ] depth of field
             * [ ] emission

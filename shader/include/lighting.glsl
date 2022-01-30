@@ -33,11 +33,20 @@ vec3 sampleHemisphere(vec3 normal)
 }
 
 
+vec3 scatterMetal(inout Ray ray, RayHit hit)
+{
+    ray.origin = hit.position + hit.normal*0.001;
+    ray.direction = reflect(ray.direction,hit.normal);
+    ray.energy *= 0.5;
+
+    return vec3(0.0);
+}
+
 vec3 scatterLambert(inout Ray ray, RayHit hit)
 {
     ray.origin = hit.position + hit.normal*0.001;
     ray.direction = sampleHemisphere(hit.normal);
-    ray.energy *= 2.0 * hit.albedo * sdot(hit.normal, ray.direction);
+    ray.energy *= hit.albedo * sdot(hit.normal, ray.direction);
 
     return vec3(0.0);
 }

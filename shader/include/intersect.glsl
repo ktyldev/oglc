@@ -17,12 +17,12 @@ void intersectSphere(Ray ray, inout RayHit bestHit, Sphere sphere)
         bestHit.position = ray.origin + t * ray.direction;
         bestHit.normal = normalize(bestHit.position-c);
         bestHit.albedo = sphere.albedo;
+        bestHit.material = sphere.material;
     }
 }
 
 void intersectPlane(Ray ray, inout RayHit bestHit, vec3 p, vec3 normal)
 {
-    //normal = vec3(0.0,0.0,1.0);
     float denom = dot(normal, ray.direction);
 
     if (abs(denom) > 0.0001)
@@ -34,6 +34,7 @@ void intersectPlane(Ray ray, inout RayHit bestHit, vec3 p, vec3 normal)
             bestHit.position = ray.origin + t*ray.direction;
             bestHit.normal = normal;
             bestHit.albedo = vec3(1.0,1.0,1.0);
+            bestHit.material = MAT_LAMBERT;
         }
     }
 }

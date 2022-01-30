@@ -38,11 +38,12 @@ void makeSpheres(struct Sphere *spheres, int count)
         glm_vec3_scale(col, 0.5, col);
         glm_vec3_adds(col, 0.5, col);
 
-        spheres[i] = makeSphere(sc,radius,col);
+        int material = i % 2 == 0;
+        spheres[i] = makeSphere(sc,radius,col,material);
     }
 }
 
-struct Sphere makeSphere(vec3 center, float radius, vec3 albedo)
+struct Sphere makeSphere(vec3 center, float radius, vec3 albedo, int material)
 {
     struct Sphere s;
 
@@ -53,20 +54,22 @@ struct Sphere makeSphere(vec3 center, float radius, vec3 albedo)
 
     glm_vec3_copy(albedo, s.albedo);
 
+    s.material = material;
+
     return s;
 }
 
-void updateSphereUniform(GLuint shaderProgram, struct Sphere sphere)
-{
-    int scrloc, saloc;
-    scrloc = glGetUniformLocation(shaderProgram, "_sphere.cr");
-    saloc = glGetUniformLocation(shaderProgram, "_sphere.albedo");
-
-    glUniform4fv(scrloc, 1, sphere.cr);
-    glUniform3fv(saloc, 1, sphere.albedo);
-
-    updateSphereUniforms(shaderProgram, &sphere, 0);
-}
+//void updateSphereUniform(GLuint shaderProgram, struct Sphere sphere)
+//{
+//    int scrloc, saloc;
+//    scrloc = glGetUniformLocation(shaderProgram, "_sphere.cr");
+//    saloc = glGetUniformLocation(shaderProgram, "_sphere.albedo");
+//
+//    glUniform4fv(scrloc, 1, sphere.cr);
+//    glUniform3fv(saloc, 1, sphere.albedo);
+//
+//    updateSphereUniforms(shaderProgram, &sphere, 0);
+//}
 
 void updateSphereUniforms(GLuint shaderProgram, struct Sphere *spheres, int count)
 {
@@ -75,7 +78,7 @@ void updateSphereUniforms(GLuint shaderProgram, struct Sphere *spheres, int coun
     glUniform1i(loc, count);
 
     // each sphere takes up two uniform locations
-    const int stride = 2;         
+    const int stride = 3;
 
     // first location in the array
     loc = glGetUniformLocation(shaderProgram, "_spheres[0].cr"); 
@@ -85,5 +88,6 @@ void updateSphereUniforms(GLuint shaderProgram, struct Sphere *spheres, int coun
         struct Sphere s = spheres[i];
         glUniform4fv(loc+i*stride,   1,  s.cr);
         glUniform3fv(loc+i*stride+1, 1,  s.albedo);
+        glUniform1i( loc+i*stride+2, s.material);
     }
 }

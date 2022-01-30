@@ -21,6 +21,7 @@ struct RayHit
     float distance;
     vec3 normal;
     vec3 albedo;
+    int material;
 };
 RayHit createRayHit()
 {

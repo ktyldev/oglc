@@ -1,9 +1,7 @@
 #include "sphere.h"
 
-void makeSpheres(struct Sphere *spheres, int count)
+void makeSpheres(struct Sphere *spheres, int count, float t)
 {
-    //float t = time();
-
     vec3 albedos[] = 
     {
         {0.0,0.0,1.0},
@@ -21,7 +19,6 @@ void makeSpheres(struct Sphere *spheres, int count)
     float x;
     vec3 sc = {0.0,0.0,1.0};
 
-    float t = now();
     for (int i = 0; i < count; i++)
     {
         x = 2.0*CGLM_PI * (float)i/(float)count;

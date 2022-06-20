@@ -2,10 +2,8 @@
 
 const float FOVY = 90.0;
 
-void updateCameraUniforms(GLuint shaderProgram, float aspect)
+void updateCameraUniforms(GLuint shaderProgram, float aspect, float t)
 {
-    float t = now();
-
     // wobble up dir
     vec3 cdir, cright, cup;
     vec3 up = {0.1*sin(t),1.0,0.05*cos(0.5*t)};

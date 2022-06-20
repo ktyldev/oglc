@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
 executable="$1"
+options="$2"
 prime="prime-run"
 
 if command -v $prime &> /dev/null
 then
-    echo "launching $executable with nvidia prime offloading"
-    $prime $executable
+    echo "launching $executable $options with nvidia prime offloading"
+    $prime $executable $options
 else
-    $executable
+    $executable $options
 fi

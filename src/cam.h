@@ -6,4 +6,4 @@
 
 #include "clock.h"
 
-void updateCameraUniforms(GLuint shaderProgram, float aspect);
+void updateCameraUniforms(GLuint shaderProgram, float aspect, float t);

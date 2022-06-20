@@ -1,6 +1,6 @@
 #include "clock.h"
 
-float now() 
+float now(struct Epoch t) 
 { 
-    return (float)SDL_GetTicks() / 1000.0; 
+    return t.speed * (float)SDL_GetTicks() / 1000.0;
 }

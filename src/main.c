@@ -10,12 +10,13 @@
 const int WIDTH = 420;
 const int HEIGHT = 420;
 
-void updateUniforms(GLuint shaderProgram);
+void updateUniforms(GLuint shaderProgram, float t);
 
 SDL_Window *window;
 
 struct Shaders shaders;
 struct Textures textures;
+struct Epoch epoch;
 
 void initialise()
 {
@@ -32,15 +33,29 @@ void initialise()
     createTextures(WIDTH, HEIGHT, shaders, &textures);
 }
 
-int main()
+void parseArgs(int argc, char* argv[], struct Epoch* e)
 {
+    // check we have the right number of arguments
+    if (argc != 2)
+    {
+        fprintf(stderr, "usage: oglc TIMESPEED\n");
+    }
+
+    sscanf(argv[1], "%f", &(e->speed));
+}
+
+int main(int argc, char* argv[])
+{
+    parseArgs(argc, argv, &epoch);
+
     initialise();
 
-    float start = now();
+    float start = now(epoch);
     int frames;
     for (frames = 0; !checkQuit(); frames++)
     {
         GLuint shader;
+        float t = now(epoch);
 
         // prepass
         // TODO: write output to different texture than main output
@@ -48,24 +63,35 @@ int main()
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textures.g0);
         glUseProgram(shader);
-        updateUniforms(shader);
+        updateUniforms(shader, t);
         glDispatchCompute((GLuint)WIDTH, (GLuint)HEIGHT, 1);
 
         // make sure we're finished writing to the texture before trying to read it
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-        // dispatch compute shaders
         shader = shaders.lighting;
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textures.target);
         glUseProgram(shader);
-        updateUniforms(shader);
+        updateUniforms(shader, t);
         //int loc = glGetUniformLocation(shader, "_g0");
         //glUniform1i(loc, textures.g0);
         glDispatchCompute((GLuint)WIDTH, (GLuint)HEIGHT, 1);
 
         // make sure we're finished writing to the texture before trying to read it
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+        // TODO: frame blending
+        //
+        // before we get to our normal rendering pass we need to blend our samples
+        // across multiple frames. to do this, we should maintain an accumulation
+        // buffer where we can store pixel data while a new frame is being generated.
+        // this can be a collection of two buffers, where one is written to and the 
+        // other is read from. to render a new frame, the newly sampled raw frame can
+        // be combined with data from the previous frame. by repeatedly taking the
+        // average over a large number of frames a cleaner image can be generated.
+        // this is most effective for static images, and will produce motion blur on
+        // a moving image.
 
         // normal drawing pass
         shader = shaders.quad;
@@ -78,7 +104,7 @@ int main()
         SDL_GL_SwapWindow(window);
     }
 
-    float elapsed = now()-start;
+    float elapsed = now(epoch)-start;
     printf("%d frames in %fs [%f fps]\n", 
             frames, 
             elapsed, 
@@ -87,7 +113,7 @@ int main()
     return 0;
 }
 
-void updateUniforms(GLuint shaderProgram)
+void updateUniforms(GLuint shaderProgram, float t)
 {
     // update random values
     vec4 seed = 
@@ -100,19 +126,17 @@ void updateUniforms(GLuint shaderProgram)
     int loc = glGetUniformLocation(shaderProgram, "_seed");
     glUniform4fv(loc, 1, seed);
 
-    // update time
-    float t = now();
     float sin_t = sin(t);
     loc = glGetUniformLocation(shaderProgram, "_t");
     glUniform4f(loc, t, sin_t, (1.0 + sin_t)*0.5, 0.0f);
 
     // update camera
     float aspect = (float)WIDTH/(float)HEIGHT;
-    updateCameraUniforms(shaderProgram, aspect);
+    updateCameraUniforms(shaderProgram, aspect, t);
 
     // make and update spheres
     const int sphereCount = 42;
     struct Sphere spheres[sphereCount];
-    makeSpheres(spheres, sphereCount);
+    makeSpheres(spheres, sphereCount, t);
     updateSphereUniforms(shaderProgram, spheres, sphereCount);
 }

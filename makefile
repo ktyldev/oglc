@@ -46,7 +46,11 @@ clean:
 	-rm -r $(BIN_DIR)
 	-rm */*.o
 
+# TODO: extract run-* out to like, python scripts? arguments can be implemented with argparse to
+# manage simple interface with C binary
 run: $(TARGET)
-	$(LAUNCH) $(TARGET)
+	$(LAUNCH) $(TARGET) 1.0
+run-converge: $(TARGET) 
+	$(LAUNCH) $(TARGET) 0.0
 
 .PHONY: run clean

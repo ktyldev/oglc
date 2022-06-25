@@ -41,7 +41,7 @@ void parseArgs(int argc, char* argv[], struct Epoch* e)
         fprintf(stderr, "usage: oglc TIMESPEED\n");
     }
 
-    sscanf(argv[1], "%f", &(e->speed));
+    sscanf(argv[1], "%f", &(e->scale));
 }
 
 int main(int argc, char* argv[])
@@ -50,12 +50,12 @@ int main(int argc, char* argv[])
 
     initialise();
 
-    float start = now(epoch);
+    float start = now();
     int frames;
     for (frames = 0; !checkQuit(); frames++)
     {
         GLuint shader;
-        float t = now(epoch);
+        float t = nowScaled(epoch);
 
         // prepass
         // TODO: write output to different texture than main output
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
         SDL_GL_SwapWindow(window);
     }
 
-    float elapsed = now(epoch)-start;
+    float elapsed = now()-start;
     printf("%d frames in %fs [%f fps]\n", 
             frames, 
             elapsed, 

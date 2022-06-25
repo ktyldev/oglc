@@ -4,8 +4,10 @@
 
 struct Epoch
 {
-    float speed;
+    float scale;
 };
 
-// seconds since program start
-float now(struct Epoch e);
+// real seconds since program start
+float now();
+// simulation seconds since program start
+float nowScaled(struct Epoch e);

@@ -13,20 +13,33 @@ void makeSpheres(struct Sphere *spheres, int count, float t)
         {1.0,1.0,1.0}
     };
 
-    // distance from center
-    float d = 6.0;
-    float radius = 0.5;
-    float x;
     vec3 sc = {0.0,0.0,1.0};
 
-    for (int i = 0; i < count; i++)
+    int sphereIdx = 0;
+
+    // a shiny sphere in the middle which bobs around
+    int middleSpheres = 1;
+    sc[0] = 2.5*sin(t*2.67);
+    sc[1] = 1.5+sin(t*1.09);
+    sc[2] = 2.5*cos(-t*2.13);
+    float radius = 1.7;
+    vec3 col = {0.0,0.0,0.0};
+    spheres[sphereIdx++] = makeSphere(sc,radius,col,1);
+
+    // rainbow spheres
+    int rainbowSpheres = count - middleSpheres;
+    // distance from center
+    float d = 6.0;
+    radius = 0.5;
+    float x;
+    for (int i = 0; i < rainbowSpheres; i++)
     {
-        x = 2.0*CGLM_PI * (float)i/(float)count;
+        x = 2.0*CGLM_PI * (float)i/(float)rainbowSpheres;
         sc[0] = sin(x)*d;
         sc[1] = sin(x*3.0-5.0*sin(t));
         sc[2] = cos(x)*d;
 
-        float ic = i/(float)count*CGLM_PI*2.0;
+        float ic = i/(float)rainbowSpheres*CGLM_PI*2.0;
         float r = sin(ic);
         float g = sin(ic+CGLM_PI/1.5);
         float b = sin(ic+2.0*CGLM_PI/1.5);
@@ -35,8 +48,8 @@ void makeSpheres(struct Sphere *spheres, int count, float t)
         glm_vec3_scale(col, 0.5, col);
         glm_vec3_adds(col, 0.5, col);
 
-        int material = i % 2 == 0;
-        spheres[i] = makeSphere(sc,radius,col,material);
+        int material = 0;
+        spheres[sphereIdx++] = makeSphere(sc,radius,col,material);
     }
 }
 

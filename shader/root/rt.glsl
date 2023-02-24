@@ -78,16 +78,25 @@ void main()
     int bounces = (1-sky) * BOUNCES; 
     pixel.xyz = mix(pixel.xyz, _skyColor, sky);
 
-    // trace the ray's path around the scene
-    for (int j = 0; j < bounces; j++)
+    // sample
+    int samples = 2;
+    for (int i = 0; i < samples; i++)
     {
-        RayHit hit = trace(ray);
+        float sampleDepth = 0;
 
-        depth = getLogarithmicDepth(ray.distance);
+        // trace the ray's path around the scene
+        for (int j = 0; j < bounces; j++)
+        {
+            RayHit hit = trace(ray);
 
-        pixel.xyz += ray.energy * shade(ray, hit);
+            depth = getLogarithmicDepth(ray.distance);
 
-        if (length(ray.energy) < 0.001) break;
+            pixel.xyz += ray.energy * shade(ray, hit);
+
+            if (length(ray.energy) < 0.001) break;
+        }
+
+        depth += sampleDepth / float(samples);
     }
 
     pixel.xyz = mix(pixel.xyz, vec3(1.0), depth);

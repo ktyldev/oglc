@@ -18,6 +18,7 @@ layout (rgba32f, binding = 3) writeonly uniform image2D g1_output;
 #include camera.glsl
 #include image.glsl
 #include scene.glsl
+#include depth.glsl
 
 void main()
 {
@@ -34,18 +35,7 @@ void main()
     Ray ray = createCameraRay(uv);
     RayHit hit = trace(ray);
 
-    // n roughly correlates to steepness of log curve
-    // TODO: what does this mean in mathematical terms??
-    float n = 4;
-    float f = INF;
-    float z = hit.distance;
-    
-    float depth;
-    // linear depth
-    //depth = z/f;
-
-    // logarithmic depth
-    depth = max(0,log(z*pow(E,n)/f)/n);
+    float depth = getLogarithmicDepth(hit.distance);
 
     // pack normal into texture
     pixel.xyz = hit.normal*0.5+0.5;

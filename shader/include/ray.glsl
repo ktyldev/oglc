@@ -3,6 +3,7 @@ struct Ray
     vec3 origin;
     vec3 direction;
     vec3 energy;
+    float distance;
 };
 Ray createRay(vec3 origin, vec3 direction)
 {
@@ -11,6 +12,7 @@ Ray createRay(vec3 origin, vec3 direction)
     ray.origin = origin;
     ray.direction = direction;
     ray.energy = vec3(1.0,1.0,1.0);
+    ray.distance = 0;
 
     return ray;
 }

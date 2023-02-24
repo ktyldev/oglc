@@ -1,4 +1,4 @@
-RayHit trace(Ray ray)
+RayHit trace(inout Ray ray)
 {
     RayHit hit = createRayHit();
 
@@ -10,6 +10,8 @@ RayHit trace(Ray ray)
     {
         intersectSphere(ray, hit, _spheres[i]);
     }
+
+    ray.distance += hit.distance * float(hit.distance < INF);
 
     return hit;
 }

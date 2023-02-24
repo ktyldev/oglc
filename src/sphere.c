@@ -48,7 +48,7 @@ void makeSpheres(struct Sphere *spheres, int count, float t)
         glm_vec3_scale(col, 0.5, col);
         glm_vec3_adds(col, 0.5, col);
 
-        int material = 0;
+        int material = i % 2;
         spheres[sphereIdx++] = makeSphere(sc,radius,col,material);
     }
 }

@@ -135,7 +135,7 @@ void updateUniforms(GLuint shaderProgram, float t)
     updateCameraUniforms(shaderProgram, aspect, t);
 
     // make and update spheres
-    const int sphereCount = 42;
+    const int sphereCount = 41;
     struct Sphere spheres[sphereCount];
     makeSpheres(spheres, sphereCount, t);
     updateSphereUniforms(shaderProgram, spheres, sphereCount);

@@ -33,7 +33,7 @@ void intersectPlane(Ray ray, inout RayHit bestHit, vec3 p, vec3 normal)
             bestHit.distance = t;
             bestHit.position = ray.origin + t*ray.direction;
             bestHit.normal = normal;
-            bestHit.albedo = vec3(1.0,1.0,1.0);
+            bestHit.albedo = vec3(1.0,.4,.4);
             bestHit.material = MAT_LAMBERT;
         }
     }

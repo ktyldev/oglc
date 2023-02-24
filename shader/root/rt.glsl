@@ -24,6 +24,7 @@ uniform vec3 _skyColor = vec3(0.68,0.85,0.9);
 // scene.glsl includes scene trace function
 #include scene.glsl     
 #include lighting.glsl
+#include depth.glsl
 
 vec3 shade(inout Ray ray, RayHit hit)
 {
@@ -77,10 +78,12 @@ void main()
     int bounces = (1-sky) * BOUNCES; 
     pixel.xyz = mix(pixel.xyz, _skyColor, sky);
 
-    // trace the rays path around the scene
+    // trace the ray's path around the scene
     for (int j = 0; j < bounces; j++)
     {
         RayHit hit = trace(ray);
+
+        depth = getLogarithmicDepth(ray.distance);
 
         pixel.xyz += ray.energy * shade(ray, hit);
 

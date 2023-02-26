@@ -30,13 +30,13 @@ void makeSpheres(struct Sphere *spheres, int count, float t)
     int rainbowSpheres = count - middleSpheres;
     // distance from center
     float d = 6.0;
-    radius = 0.5;
+    radius = 0.7;
     float x;
     for (int i = 0; i < rainbowSpheres; i++)
     {
         x = 2.0*CGLM_PI * (float)i/(float)rainbowSpheres;
         sc[0] = sin(x)*d;
-        sc[1] = sin(x*3.0-5.0*sin(t));
+        sc[1] = radius*sin(x*3.0-5.0*sin(t));
         sc[2] = cos(x)*d;
 
         float ic = i/(float)rainbowSpheres*CGLM_PI*2.0;

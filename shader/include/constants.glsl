@@ -1,4 +1,4 @@
-const float INF = 30.0;
+const float INF = 45.0;
 const float PI = 3.14159;
 const float E = 2.71828;
 const int BOUNCES = 5;

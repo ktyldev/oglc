@@ -7,7 +7,7 @@ float getLogarithmicDepth(float distance)
 {
     // n roughly correlates to steepness of log curve
     // TODO: what does this mean in mathematical terms??
-    float n = 4;
+    float n = 2;
     float f = INF;
     float z = distance;
     

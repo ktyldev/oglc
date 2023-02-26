@@ -99,6 +99,13 @@ void main()
         depth += sampleDepth / float(samples);
     }
 
+
+    // include the first sample we took
+    samples++;
+    // gamma correction
+    float scale = 1.0 / samples;
+    pixel.xyz = sqrt(scale * pixel.xyz);
+
     pixel.xyz = mix(pixel.xyz, vec3(1.0), depth);
 
     // output to a specific pixel in the image

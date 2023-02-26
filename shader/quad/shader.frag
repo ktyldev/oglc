@@ -49,9 +49,9 @@ vec4 denoise(sampler2D tex, vec2 uv, float sigma, float kSigma, float threshold)
 
 void main()
 {
-    float sigma = 2.2;
-    float kSigma = 10.0;
-    float threshold = 0.2;
+    float sigma = 2.5;
+    float kSigma = 7.0;
+    float threshold = 0.3;
 
     FragColor = denoise(ourTexture, TexCoord, sigma, kSigma, threshold);
     //FragColor = texture(ourTexture, TexCoord);

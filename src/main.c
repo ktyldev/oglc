@@ -7,8 +7,8 @@
 #include "cam.h"
 #include "input.h"
 
-const int WIDTH = 500;
-const int HEIGHT = 500;
+const int WIDTH = 420;
+const int HEIGHT = 420;
 
 void updateUniforms(GLuint shaderProgram, float t);
 

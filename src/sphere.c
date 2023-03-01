@@ -2,17 +2,6 @@
 
 void makeSpheres(struct Sphere *spheres, int count, float t)
 {
-    vec3 albedos[] = 
-    {
-        {0.0,0.0,1.0},
-        {0.0,1.0,0.0},
-        {0.0,1.0,1.0},
-        {1.0,0.0,0.0},
-        {1.0,0.0,1.0},
-        {1.0,1.0,0.0},
-        {1.0,1.0,1.0}
-    };
-
     vec3 sc = {0.0,0.0,1.0};
 
     int sphereIdx = 0;
